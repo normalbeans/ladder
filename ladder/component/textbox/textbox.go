@@ -12,7 +12,7 @@ func (t *TextBox) Init(text string) {
 
 func (t *TextBox) Redraw() {
 	fmt.Print("\n")
-	fmt.Print(t.text, "\n")
+	fmt.Print(t.text, "\n\r")
 }
 
 // can probably be merged, temp for now

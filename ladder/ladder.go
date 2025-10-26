@@ -14,8 +14,15 @@ import (
 // TODO:
 // create channels for redraw and quit; redraw channel is of type GlobalState.
 
+var renderchannel = CreateRenderChannel()
+var inputchannel = CreateInputChannel()
+
 func CreateRenderChannel() chan state.GlobalState {
 	return make(chan state.GlobalState, 1)
+}
+
+func CreateInputChannel() chan []byte {
+	return make(chan []byte, 1)
 }
 
 type Ladder struct {
@@ -23,9 +30,11 @@ type Ladder struct {
 	TermState *term.State
 }
 
-func (l *Ladder) Render(redraw <-chan state.GlobalState) { // listen to state here
+func (l *Ladder) Render() { // listen to state here
 	// fmt.Print("starting redner")
-	for range redraw { // for range instead of for select because only one channel
+	cs := state.GetState()
+	renderchannel <- cs
+	for range renderchannel { // for range instead of for select because only one channel
 		cs := state.GetState()
 		// fmt.Println(cs)
 		l.Screen.RenderScreen(cs)
@@ -59,5 +68,26 @@ func InitLadder() *Ladder {
 	return &Ladder{
 		TermState: oldState,
 		Screen:    newScreen,
+	}
+}
+
+func InputListener() {
+	buf := make([]byte, 3)
+	for {
+		for i := range buf {
+			buf[i] = 0
+		}
+		_, err := os.Stdin.Read(buf)
+		if err != nil {
+			break
+		}
+		switch buf[0] {
+		case 13, 10:
+			// enter/return
+			cs := state.GetState()
+			renderchannel <- cs
+		case 'q', 'Q':
+			return
+		}
 	}
 }
