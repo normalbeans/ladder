@@ -11,6 +11,6 @@ type Page struct {
 
 func (p *Page) RenderPage(currentstate state.GlobalState) {
 	for i := range p.ComponentStack {
-		p.ComponentStack[i].Redraw()
+		p.ComponentStack[i].Render()
 	}
 }

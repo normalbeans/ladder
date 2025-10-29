@@ -21,9 +21,11 @@ func main() {
 	// 	COmponentst: ///
 	// })
 
+	// also add command structure per component and programatically configure inputs
+
 	defer term.Restore(int(os.Stdin.Fd()), nl.TermState)
 
-	go nl.Render()
-	ladder.InputListener()
+	nl.Render()
+	// ladder.InputListener()
 
 }
