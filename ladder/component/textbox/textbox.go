@@ -14,8 +14,8 @@ func (t *TextBox) Init(id int, text string) {
 }
 
 func (t TextBox) Render() {
-	fmt.Print("\r\n")
 	fmt.Print(t.text)
+	fmt.Print("\r\n")
 }
 
 // can probably be merged, temp for now

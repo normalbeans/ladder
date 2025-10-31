@@ -13,16 +13,16 @@ type Lineinput struct {
 	currentHeight int
 }
 
-func (l *Lineinput) Init(id int, prompt string, cechannel chan compevent.CompEvent, idchannel chan struct{}) {
+func (l *Lineinput) Init(id int, prompt string, compEventCh chan compevent.CompEvent, inputDoneCh chan struct{}) {
 	l.id = id
 	l.prompt = prompt
 
-	go l.Listener(cechannel, idchannel)
+	go l.Listener(compEventCh, inputDoneCh)
 }
 
-func (l *Lineinput) Listener(cechannel chan compevent.CompEvent, idchannel chan struct{}) {
+func (l *Lineinput) Listener(compEventCh chan compevent.CompEvent, inputDoneCh chan struct{}) {
 	// fmt.Print("\n\r started listener for id", l.id)
-	for ip := range cechannel {
+	for ip := range compEventCh {
 		// fmt.Printf("\n\rgot event: %d, %v", ip.Id, ip.Val)
 		if ip.Id != l.id {
 			//for me
@@ -32,8 +32,10 @@ func (l *Lineinput) Listener(cechannel chan compevent.CompEvent, idchannel chan 
 		done := l.HandleInput(ip)
 		if done == 1 {
 			fmt.Printf("\n\r%s\n\r", l.input)
-			fmt.Print("\n\rsending done")
-			idchannel <- struct{}{}
+			// fmt.Print("\n\rsending done")
+			inputDoneCh <- struct{}{}
+			l.input = ""
+			// can send the data here
 		}
 	}
 }
@@ -60,6 +62,7 @@ func (l *Lineinput) HandleInput(ce compevent.CompEvent) int {
 	default:
 		l.input = l.input + string(ce.Val)
 	}
+	l.Render()
 	return 0
 }
 
@@ -68,7 +71,8 @@ func (l *Lineinput) UpdatePrompt(prompt string) {
 }
 
 func (l *Lineinput) Render() {
-	fmt.Printf("\r\n%s", l.prompt)
+	fmt.Printf("\r%s%s", l.prompt, l.input)
+	// fmt.Print("\n\r")
 }
 
 // can probably be merged, temp for now

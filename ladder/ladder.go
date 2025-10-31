@@ -1,7 +1,6 @@
 package ladder
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/nn-advith/ladder/ladder/ansiops"
@@ -18,11 +17,10 @@ import (
 // TODO:
 // create channels for redraw and quit; redraw channel is of type GlobalState.
 
-var renderchannel = CreateRenderChannel() // handle state global
-var compeventchannel = CreateCompEventChannel()
-var inputdonechannel = CreateInputDoneChannel()
-
-// var inputchannel = CreateInputChannel()
+var renderCh = CreateRenderChannel() // handle state global
+var compEventCh = CreateCompEventChannel()
+var compInputDoneCh = CreateCompInputDoneChannel()
+var inputCh = CreateInputChannel()
 
 func CreateRenderChannel() chan state.GlobalState {
 	return make(chan state.GlobalState, 1)
@@ -32,8 +30,12 @@ func CreateCompEventChannel() chan compevent.CompEvent {
 	return make(chan compevent.CompEvent, 1)
 }
 
-func CreateInputDoneChannel() chan struct{} {
+func CreateCompInputDoneChannel() chan struct{} {
 	return make(chan struct{})
+}
+
+func CreateInputChannel() chan []byte {
+	return make(chan []byte)
 }
 
 // func CreateInputChannel() chan []byte {
@@ -50,11 +52,27 @@ func (l *Ladder) Render() { // listen to state here
 
 	go func() {
 		cs := state.GetState()
-		renderchannel <- cs
-		for range renderchannel { // for range instead of for select because only one channel
+		renderCh <- cs
+		for range renderCh { // for range instead of for select because only one channel
 			cs := state.GetState()
 			// fmt.Println(cs)
 			l.Screen.RenderScreen(cs)
+		}
+	}()
+
+	go func() {
+		buf := make([]byte, 8)
+		for {
+			for i := range buf {
+				buf[i] = 0
+			}
+			n, err := os.Stdin.Read(buf)
+			if err != nil {
+				break
+			}
+			// fmt.Print("\n\rsending ip")
+			data := append([]byte(nil), buf[:n]...)
+			inputCh <- data
 		}
 	}()
 
@@ -83,7 +101,7 @@ func InitLadder() *Ladder {
 	// commandpanel.Init("UP: Move Up Down: Move Down ENTER: Select component")
 
 	lineinput := lineinput.Lineinput{}
-	lineinput.Init(1, "INPUT: ", compeventchannel, inputdonechannel)
+	lineinput.Init(1, "INPUT: ", compEventCh, compInputDoneCh)
 
 	newScreen := screen.Screen{
 		PageStack: []page.Page{
@@ -104,55 +122,60 @@ func InitLadder() *Ladder {
 
 // Input listener loop
 func InputListener() {
-	buf := make([]byte, 8)
+	// buf := make([]byte, 8)
 	for {
 
 		//; this is not being triggered immediately. check this. maybe due to os.std in
 		// try moving read to separate routing and introduce YET another channel.
 		select {
-		case <-inputdonechannel:
-			fmt.Print("\n\rinput done")
+		case <-compInputDoneCh:
+			// fmt.Print("\n\rinput done")
 			state.UpdateMode(1)
 			cs := state.GetState() // definitely improve this, maybe setup a different listener
-			renderchannel <- cs
+			renderCh <- cs
 			continue
-		default:
-		}
+		case data := <-inputCh:
+			// fmt.Print("\n\rgot ip from routine")
+			// fmt.Print("\n\r", data)
+			cs := state.GetState()
+			cmode := cs.GetCurrentMode()
+			// fmt.Printf("\n\rCMODE: %d", cmode)
 
-		for i := range buf {
-			buf[i] = 0
-		}
-		n, err := os.Stdin.Read(buf)
-		if err != nil {
-			break
-		}
-		data := buf[:n]
-		cs := state.GetState()
-		cmode := cs.GetCurrentMode()
-		fmt.Printf("\n\rCMODE: %d", cmode)
+			switch cmode {
+			case 1:
+				// page mode
+				switch data[0] {
+				case 13, 10:
+					// enter/return
+					state.UpdateMode(2)
+					state.UpdateActiveComponent(1)
+				case 'q', 'Q':
+					return
+				default:
+					//pass
+				}
+			case 2:
+				//component mode
+				ncevent := compevent.CompEvent{}
+				ncevent.Id = cs.GetActiveComponent()
+				valCopy := append([]byte(nil), data...)
+				ncevent.Val = valCopy
 
-		if cmode == 1 {
-			// page mode
-			switch data[0] {
-			case 13, 10:
-				// enter/return
-				state.UpdateMode(2)
-				state.UpdateActiveComponent(1)
-			case 'q', 'Q':
-				return
-			default:
-				//pass
+				// fmt.Printf("\n\rSENDING EVENT: %d, %v", ncevent.Id, ncevent.Val)
+				compEventCh <- ncevent
 			}
-		} else if cmode == 2 {
-			//component mode
-			ncevent := compevent.CompEvent{}
-			ncevent.Id = cs.GetActiveComponent()
-			valCopy := append([]byte(nil), data...)
-			ncevent.Val = valCopy
-
-			fmt.Printf("\n\rSENDING EVENT: %d, %v", ncevent.Id, ncevent.Val)
-			compeventchannel <- ncevent
+			// default:
+			//pass
 		}
+
+		// for i := range buf {
+		// 	buf[i] = 0
+		// }
+		// n, err := os.Stdin.Read(buf)
+		// if err != nil {
+		// 	break
+		// }
+		// data := buf[:n]
 
 	}
 }
