@@ -1,3 +1,5 @@
+# routine overview
+
 channels: 
 statechannel -> global state channel to handle rerendering 
 compeventchannel -> sends input to components from stdin 
@@ -19,3 +21,13 @@ also has a select case to listen on compeventdonechannel to switch mode to page
 
 
 since each component is listeninng in a routine, if the id matches, it does its input handling. after it is done ( may be a special input is received or something), it sends signal on compeventdonechannel to give up control
+
+---
+
+# input config parser:
+
+
+
+---
+
+# global state or component level state? :

@@ -10,6 +10,7 @@ type Page struct {
 }
 
 func (p *Page) RenderPage(currentstate state.GlobalState) {
+	// fmt.Print("\033[2J\033[3J\033[H")
 	for i := range p.ComponentStack {
 		p.ComponentStack[i].Render()
 	}

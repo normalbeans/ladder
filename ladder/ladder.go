@@ -22,6 +22,8 @@ var compEventCh = CreateCompEventChannel()
 var compInputDoneCh = CreateCompInputDoneChannel()
 var inputCh = CreateInputChannel()
 
+// combine all of these into one, too shallow
+
 func CreateRenderChannel() chan state.GlobalState {
 	return make(chan state.GlobalState, 1)
 }

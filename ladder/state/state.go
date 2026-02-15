@@ -4,10 +4,16 @@ import "sync"
 
 // state update and redraw
 
+type CompBucket interface{
+	New() any
+	
+}
+
 type GlobalState struct {
 	mode            int // can be made simpler, needs more exploration
 	activePage      int
 	activeComponent int
+	databuckets map[string]CompBucket
 }
 
 func (g GlobalState) GetActivePage() int {
