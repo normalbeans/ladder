@@ -2,12 +2,22 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
+
+	"golang.org/x/term"
 )
 
-type Message interface{}
+type Message any
 
-type Model interface {
+type Increment struct{}
+type Decrement struct{}
+type lMsg struct {
+	id  int
+	msg any
+}
+
+type Component interface {
 	Init(Message)
 	Update(Message) bool
 	View() string
@@ -16,9 +26,6 @@ type Model interface {
 type Counter struct {
 	count int
 }
-
-type Increment struct{}
-type Decrement struct{}
 
 func (c *Counter) Init(m Message) {
 	switch m := m.(type) {
@@ -30,13 +37,14 @@ func (c *Counter) Init(m Message) {
 }
 
 func (c *Counter) Update(m Message) bool {
+
 	switch m := m.(type) {
 	case Increment:
 		c.count += 1
 	case Decrement:
 		c.count -= 1
 	case string:
-		if m == "RESET" {
+		if m == "r" {
 			c.count = 0
 		}
 	default:
@@ -48,71 +56,99 @@ func (c *Counter) Update(m Message) bool {
 
 func (c *Counter) View() string {
 	var sb strings.Builder
-	sb.WriteString("\nCounter:")
-	fmt.Fprintf(&sb, "\nCount: %d\n=========", c.count)
+	sb.WriteString("\r\nCounter:")
+	fmt.Fprintf(&sb, "\r\nCount: %d\r\n=========\r\n", c.count)
 	return sb.String()
 }
 
-// type Selector struct {
-// 	choices []string
-// 	selection int
-// }
+type Ladder struct {
+	// channels
+	components    []Component
+	msgChannel    chan Message
+	focus         int
+	terminalState *term.State
+}
 
-// func (s *Selector) Init(m Message) {
-// 	switch m := m.(type) {
-// 	case []string:
-// 		s.choices = m
-// 	default:
-// 		s.choices = []string{}
-// 	}
-// 	s.selection = 0
-// }
-// func (s *Selector) Update(m Message) bool {
+func (l *Ladder) Init(c []Component) {
+	l.components = c
+	l.focus = 0
+	l.msgChannel = make(chan Message)
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		panic(err)
+	}
+	l.terminalState = oldState
 
-// }
-// func (s *Selector) {
+	go func() {
+		b := make([]byte, 1)
+		for {
 
-// }
-
-func main() {
-	// w, h, err := term.GetSize(int(os.Stdin.Fd()))
-	// if err != nil {
-	// 	fmt.Println("Errror during getting size", err)
-	// }
-
-	// oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-	// if err != nil {
-	// 	fmt.Println("Error during raw:", err)
-	// }
-	// defer term.Restore(int(os.Stderr.Fd()), oldState)
-
-	// fmt.Print("\r\nHello world")
-	// fmt.Printf("\r\nWidth: %d\r\nHeight: %d", w, h)
-	// fmt.Printf("\r\nTerminal: %v\r\n", term.IsTerminal(int(os.Stdin.Fd())))
-	c := Counter{}
-	c.Init(nil)
-	fmt.Println(c.View())
-	for {
-		rerender := false
-		// wait for input
-		var input string
-		fmt.Scanln(&input)
-		input = strings.ToLower(strings.TrimSpace(input))
-
-		switch input {
-		case "+":
-			rerender = c.Update(Increment{})
-		case "-":
-			rerender = c.Update(Decrement{})
-		case "r":
-			rerender = c.Update("RESET")
-		default:
-			continue
+			os.Stdin.Read(b)
+			input := string(b)
+			l.msgChannel <- input
 		}
+	}()
+}
 
-		if rerender {
-			fmt.Println(c.View())
-			rerender = false
+// func (l *Ladder) AddComponent(c Component) {
+// 	l.components = append(l.components, c)
+// }
+
+func (l *Ladder) Update(msg Message) {
+
+	switch m := msg.(type) {
+	case string:
+		switch m {
+		case "q", "\x03":
+			term.Restore(int(os.Stdin.Fd()), l.terminalState)
+			os.Exit(0)
+		case "j":
+			l.focus = (l.focus - 1) % len(l.components)
+		case "k":
+			l.focus = (l.focus + 1) % len(l.components)
+		case "+":
+			l.components[l.focus].Update(Increment{})
+		case "-":
+			l.components[l.focus].Update(Decrement{})
+		default:
+			l.components[l.focus].Update(m)
 		}
 	}
+}
+
+func (l *Ladder) View() {
+	// get component strings
+	var sb strings.Builder
+	sb.WriteString("\033[H\033[2J")
+	for i := range l.components {
+		sb.WriteString(l.components[i].View())
+		sb.WriteString("\r\n")
+	}
+	fmt.Print(sb.String())
+
+}
+
+func (l *Ladder) Render() {
+	l.View()
+
+	for m := range l.msgChannel {
+		l.Update(m)
+		l.View()
+	}
+}
+
+// ladder run must initialise the models,
+
+func main() {
+
+	// msgChannel := make(chan Message)
+	c1 := &Counter{}
+	c1.Init(10)
+	c2 := &Counter{}
+	c2.Init(20)
+
+	l := &Ladder{}
+	l.Init([]Component{c1, c2})
+	l.Render()
+
 }
