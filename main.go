@@ -8,147 +8,88 @@ import (
 	"golang.org/x/term"
 )
 
-type Message any
+var CURSORX int = 1
+var CURSORY int = 1
 
-type Increment struct{}
-type Decrement struct{}
-type lMsg struct {
-	id  int
-	msg any
+func printAtPos(x, y int) {
+	fmt.Printf("\033[%d;%dH", x, y)
+	fmt.Print("AAA")
 }
 
-type Component interface {
-	Init(Message)
-	Update(Message) bool
-	View() string
-}
-
-type Counter struct {
-	count int
-}
-
-func (c *Counter) Init(m Message) {
-	switch m := m.(type) {
-	case int:
-		c.count = m
-	default:
-		c.count = 0
-	}
-}
-
-func (c *Counter) Update(m Message) bool {
-
-	switch m := m.(type) {
-	case Increment:
-		c.count += 1
-	case Decrement:
-		c.count -= 1
-	case string:
-		if m == "r" {
-			c.count = 0
-		}
-	default:
-		//nothing
-		return false
-	}
-	return true
-}
-
-func (c *Counter) View() string {
-	var sb strings.Builder
-	sb.WriteString("\r\nCounter:")
-	fmt.Fprintf(&sb, "\r\nCount: %d\r\n=========\r\n", c.count)
-	return sb.String()
-}
-
-type Ladder struct {
-	// channels
-	components    []Component
-	msgChannel    chan Message
-	focus         int
-	terminalState *term.State
-}
-
-func (l *Ladder) Init(c []Component) {
-	l.components = c
-	l.focus = 0
-	l.msgChannel = make(chan Message)
-	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-	if err != nil {
-		panic(err)
-	}
-	l.terminalState = oldState
-
-	go func() {
-		b := make([]byte, 1)
-		for {
-
-			os.Stdin.Read(b)
-			input := string(b)
-			l.msgChannel <- input
-		}
-	}()
-}
-
-// func (l *Ladder) AddComponent(c Component) {
-// 	l.components = append(l.components, c)
-// }
-
-func (l *Ladder) Update(msg Message) {
-
-	switch m := msg.(type) {
-	case string:
-		switch m {
-		case "q", "\x03":
-			term.Restore(int(os.Stdin.Fd()), l.terminalState)
-			os.Exit(0)
-		case "j":
-			l.focus = (l.focus - 1) % len(l.components)
-		case "k":
-			l.focus = (l.focus + 1) % len(l.components)
-		case "+":
-			l.components[l.focus].Update(Increment{})
-		case "-":
-			l.components[l.focus].Update(Decrement{})
-		default:
-			l.components[l.focus].Update(m)
+func printRectangle(ox, oy, w, h int) {
+	// prints a rectangle of width w and height h starting from ox and oy.
+	fmt.Printf("\033[%d;%dH", ox, oy)
+	for i := 0; i < w; i++ {
+		for j := 0; j < h; j++ {
+			fmt.Printf("\033[%d;%dH\u2580", ox+i, oy+j)
 		}
 	}
 }
 
-func (l *Ladder) View() {
-	// get component strings
-	var sb strings.Builder
-	sb.WriteString("\033[H\033[2J")
-	for i := range l.components {
-		sb.WriteString(l.components[i].View())
-		sb.WriteString("\r\n")
-	}
-	fmt.Print(sb.String())
-
-}
-
-func (l *Ladder) Render() {
-	l.View()
-
-	for m := range l.msgChannel {
-		l.Update(m)
-		l.View()
+func printRectangleAtCurrent(w, h int) {
+	for j := 0; j < h; j++ {
+		fmt.Printf("\033[%d;%dH%s", j+1, 1, strings.Repeat("\u2580 ", w))
 	}
 }
 
-// ladder run must initialise the models,
+func displayCoord() {
+	fmt.Printf("\033[%d;%dH\033[0KCord: (%d, %d)\t| Ctrl+C - Quit", 15, 1, CURSORX, CURSORY)
+}
+
+func snoopy(quit chan byte, w, h int) {
+	// just listen keystrokes and print them back
+	// topblock := true
+	// snooper := bufio.NewReader(os.Stdin)
+	for {
+
+		fmt.Printf("\033[%d;%dH", CURSORY, CURSORX)
+
+		buf := make([]byte, 8)
+		n, err := os.Stdin.Read(buf)
+		data := buf[:n]
+		if err != nil {
+			panic(err)
+		}
+		if data[0] == 0x03 {
+			close(quit)
+		} else if data[0] == 27 && data[1] == 91 {
+			switch data[2] {
+			case 65:
+				CURSORY = max(CURSORY-1, 1)
+				// topblock = !topblock
+			case 66:
+				CURSORY = min(CURSORY+1, h)
+				// topblock = !topblock
+			case 67:
+				CURSORX = min(CURSORX+1, w)
+			case 68:
+				CURSORX = max(CURSORX-1, 1)
+			}
+			displayCoord()
+		} else {
+			if CURSORX < w {
+				CURSORX = min(CURSORX+1, w)
+				fmt.Print(string(data))
+				displayCoord()
+			}
+		}
+
+	}
+}
 
 func main() {
 
-	// msgChannel := make(chan Message)
-	c1 := &Counter{}
-	c1.Init(10)
-	c2 := &Counter{}
-	c2.Init(20)
+	WIDTH, HEIGHT := 30, 14
 
-	l := &Ladder{}
-	l.Init([]Component{c1, c2})
-	l.Render()
-
+	originalState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		panic(err)
+	}
+	defer term.Restore(int(os.Stdin.Fd()), originalState)
+	quit := make(chan byte, 1)
+	fmt.Print("\033[H\033[J")
+	go snoopy(quit, WIDTH, HEIGHT)
+	displayCoord()
+	<-quit
+	fmt.Print("\033[H\033[J\033[?25h")
 }

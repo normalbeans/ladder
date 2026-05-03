@@ -1,0 +1,27 @@
+======================================================================
+Title   : Escape code and byte index
+Author  : nna
+Date    : 02-05-2026
+======================================================================
+
+1. About this document
+
+    This document contains a list of escape codes that were encountered while experimenting on this project.
+    Personal reference index. Captured on unix and represented as byte (or byte arrays)
+
+2. Special Characters
+
+    UPARROW         - [27 91 65]
+    DOWNARROW       - [27 91 66]
+    RIGHTARROW      - [27 91 67]
+    LEFTARROW       - [27 91 68]
+
+3. Cursor Controls
+
+    Hide Cursor     - \033[?25l
+    Show Cursor     - \033[?25h
+
+
+======================================================================
+Ending block
+======================================================================
