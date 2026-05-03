@@ -48,11 +48,11 @@ func (b *Box) Render() {
 	for j := 0; j < b.Height; j++ {
 		switch j {
 		case 0:
-			fmt.Printf("\x1b[%dm\x1b[%d;%dH|"+strings.Repeat("-", b.Width-2)+"|\x1b[0m", b.color, b.Originy+j, b.Originx)
+			fmt.Printf("\x1b[%dm\x1b[%d;%dH\u2588"+strings.Repeat("\u2580", b.Width-2)+"\u2588\x1b[0m", b.color, b.Originy+j, b.Originx)
 		case b.Height - 1:
-			fmt.Printf("\x1b[%dm\x1b[%d;%dH|"+strings.Repeat("-", b.Width-2)+"|\x1b[0m", b.color, b.Originy+j, b.Originx)
+			fmt.Printf("\x1b[%dm\x1b[%d;%dH\u2588"+strings.Repeat("\u2584", b.Width-2)+"\u2588\x1b[0m", b.color, b.Originy+j, b.Originx)
 		default:
-			fmt.Printf("\x1b[%dm\x1b[%d;%dH|"+strings.Repeat(" ", b.Width-2)+"|\x1b[0m", b.color, b.Originy+j, b.Originx)
+			fmt.Printf("\x1b[%dm\x1b[%d;%dH\u2588"+strings.Repeat(" ", b.Width-2)+"\u2588\x1b[0m", b.color, b.Originy+j, b.Originx)
 		}
 	}
 }
@@ -105,6 +105,13 @@ func (l *Ladder) Snooper() {
 		}
 		if data[0] == 0x03 {
 			close(l.Quit)
+		} else if data[0] == 27 && data[1] == 91 {
+			switch data[2] {
+			case 65:
+				l.Focus = (l.Focus - 1) % len(l.Components)
+			case 66:
+				l.Focus = (l.Focus + 1) % len(l.Components)
+			}
 		} else {
 			if _, ok := l.Components[l.Focus].Controls().Actions[string(data)]; ok {
 				l.Components[l.Focus].Controls().Actions[string(data)].Function()

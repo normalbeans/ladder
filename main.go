@@ -22,11 +22,17 @@ func main() {
 		Originx: 1,
 		Originy: 1,
 	}
+	b2 := ladder.Box{
+		Width:   60,
+		Height:  3,
+		Originx: 1,
+		Originy: 6,
+	}
 
 	b.SetColor()
 
 	l := ladder.Ladder{
-		Components: []ladder.Component{&b},
+		Components: []ladder.Component{&b, &b2},
 		Focus:      0,
 		CURSORX:    1,
 		CURSORY:    1,
