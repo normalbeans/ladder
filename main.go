@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nn-advith/ladder/ladder"
+	"github.com/normalbeans/ladder/ladder"
+	"github.com/normalbeans/ladder/ladder/component"
 	"golang.org/x/term"
 )
 
@@ -16,37 +17,29 @@ func main() {
 	}
 	defer term.Restore(int(os.Stdin.Fd()), originalState)
 
-	b := ladder.Box{
-		Width:   30,
-		Height:  5,
-		Originx: 1,
-		Originy: 1,
-	}
-	b2 := ladder.Box{
-		Width:   60,
-		Height:  3,
-		Originx: 1,
-		Originy: 6,
-	}
-
-	b.SetColor()
-
 	l := ladder.Ladder{
-		Components: []ladder.Component{&b, &b2},
-		Focus:      0,
-		CURSORX:    1,
-		CURSORY:    1,
-		WIDTH:      100,
-		HEIGHT:     20,
-		Data: map[int]ladder.Model{
-			0: b.DataModel(),
+		Components: make(map[int]component.Component),
+		State: component.LState{
+			CompModels: make(map[int]component.Model),
+			Focus:      0,
+			WIDTH:      100,
+			HEIGHT:     20,
+			CURSORX:    1,
+			CURSORY:    1,
 		},
 		Quit:     make(chan byte, 1),
 		OldState: originalState,
 	}
 
+	b := &component.Box{}
+	bModel := b.DataModel(30, 5, 1, 1)
+	l.RegisterComponent(b, bModel)
+	b2 := &component.Box{}
+	b2Model := b2.DataModel(60, 3, 1, 6)
+	l.RegisterComponent(b2, b2Model)
+
 	go l.Snooper()
-	l.Render()
+	go l.Looper()
 	<-l.Quit
 	term.Restore(int(os.Stdin.Fd()), l.OldState)
 	fmt.Print("\x1b[H\x1b[J\x1b[H\x1b[?25h")

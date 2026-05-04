@@ -1,4 +1,4 @@
-module github.com/nn-advith/ladder
+module github.com/normalbeans/ladder
 
 go 1.25.1
 
