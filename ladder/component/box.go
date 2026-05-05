@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"strings"
+
+	"github.com/normalbeans/ladder/ladder/key"
 )
 
 type BoxModel struct {
@@ -25,7 +27,13 @@ func (b *Box) SetColor(state LState) LState {
 	currentModel.color = getRandomColor()
 	state.CompModels[b.id] = currentModel
 	return state
+}
 
+func (b *Box) IncreaseWidth(state LState) LState {
+	currentModel := state.CompModels[b.id].(BoxModel)
+	currentModel.Width += 1
+	state.CompModels[b.id] = currentModel
+	return state
 }
 
 // CORE
@@ -53,8 +61,14 @@ func (b *Box) Controls() Command {
 	return Command{
 		Actions: map[string]ComponentFunction{
 			"c": {
+				KeyHint:  "c",
 				Legend:   "Change Color",
 				Function: b.SetColor,
+			},
+			key.ArrowRight: {
+				KeyHint:  "->",
+				Legend:   "Increase width",
+				Function: b.IncreaseWidth,
 			},
 		},
 	}

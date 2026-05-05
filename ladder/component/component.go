@@ -7,6 +7,7 @@ type LState struct {
 }
 
 type ComponentFunction struct {
+	KeyHint string
 	Legend   string
 	Function func(LState) LState
 }
