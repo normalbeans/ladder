@@ -2,6 +2,7 @@ package component
 
 type LState struct {
 	CompModels                      map[int]Model
+	Changed 	map[int]bool
 	Focus                           int
 	WIDTH, HEIGHT, CURSORX, CURSORY int
 }

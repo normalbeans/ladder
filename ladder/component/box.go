@@ -44,7 +44,7 @@ func (b *Box) SetID(id int) {
 
 func (b *Box) Render(state LState) {
 	c := state.CompModels[b.id].(BoxModel)
-	fmt.Printf("\x1b[%d;%dH", c.Originx, c.Originy)
+	fmt.Printf("\x1b[%d;%dH", c.Originy, c.Originx)
 	for j := 0; j < c.Height; j++ {
 		switch j {
 		case 0:

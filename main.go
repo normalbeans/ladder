@@ -26,6 +26,7 @@ func main() {
 			HEIGHT:     20,
 			CURSORX:    1,
 			CURSORY:    1,
+			Changed:    make(map[int]bool),
 		},
 		Quit:     make(chan byte, 1),
 		OldState: originalState,
@@ -34,12 +35,17 @@ func main() {
 	b := &component.Box{}
 	bModel := b.DataModel(30, 5, 1, 1)
 	l.RegisterComponent(b, bModel)
+
+	c := &component.Counter{}
+	cModel := c.DataModel(40, 5, 1, 6)
+	l.RegisterComponent(c, cModel)
 	b2 := &component.Box{}
-	b2Model := b2.DataModel(60, 3, 1, 6)
+
+	b2Model := b2.DataModel(60, 3, 1, 11)
 	l.RegisterComponent(b2, b2Model)
 
 	go l.Snooper()
-	go l.Looper()
+	// go l.Looper()
 	<-l.Quit
 	term.Restore(int(os.Stdin.Fd()), l.OldState)
 	fmt.Print("\x1b[H\x1b[J\x1b[H\x1b[?25h")
