@@ -36,10 +36,10 @@ func (l *Ladder) Render() {
 	}
 	// probably move this into its own component
 	var focusindex strings.Builder
-	for _, v := range l.Components[l.State.Focus].Controls().Actions {
+	for _, v := range l.State.CompModels[l.State.Focus].GetControls().Actions {
 		fmt.Fprintf(&focusindex, " %s - %s |", v.KeyHint, v.Legend)
 	}
-	fmt.Printf("\x1b[%d;%dH"+focusindex.String(), l.State.HEIGHT+1, 1)
+	fmt.Printf("\x1b[%d;%dH\x1b[0K"+focusindex.String(), l.State.HEIGHT+1, 1)
 }
 
 // func (l *Ladder) Looper() {
@@ -72,7 +72,7 @@ func (l *Ladder) Snooper() {
 		case key.ArrowDown:
 			l.State.Focus = (l.State.Focus + 1) % len(l.State.CompModels)
 		default:
-			if executor, ok := l.Components[l.State.Focus].Controls().Actions[string(data)]; ok {
+			if executor, ok := l.State.CompModels[l.State.Focus].GetControls().Actions[string(data)]; ok {
 				l.State = executor.Function(l.State)
 				l.State.Changed[l.State.Focus] = true
 			}

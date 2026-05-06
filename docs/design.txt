@@ -4,7 +4,35 @@ Author  : nna
 Date    : 02-05-2026
 ======================================================================
 
-1. Backup
+0. Pending Tasks
+
+    - Dynamic origins; register component should take care of that
+    - position to render from must be passed to the component; so that other component size chagnes dont 
+      overwrite the current component
+    - Way to register functionality must be given as a function interface( is that even correct?)
+      Essentially, every function that is used to update the Model must follow same signature and must be 
+      part of the model itself, not a method. Function as data to struct, not method. -- DONE NEEDS TO BE RECHECKED
+    - Data can also be pluggable, make the component  just a renderer with some default data already plugged in
+    - Legend component; default or pluggable?      
+    - DataModel can be removed i think, it just returns stuff.
+    - IMPORTANT: Remove randomness from legend
+
+---
+
+1. About 
+
+    This documetn describes the evolving design for a simple TUI Framework that can be used to build
+    TUI Applications in golang. The core loop is MVU based and everything is written from scratch.
+    TUIs are really cool.
+
+---
+
+2. Core Loop
+    
+
+---
+
+100. Backup
 
     +++
 

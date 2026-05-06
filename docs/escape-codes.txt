@@ -11,10 +11,18 @@ Date    : 02-05-2026
 
 2. Special Characters
 
-    UPARROW         - [27 91 65]
-    DOWNARROW       - [27 91 66]
-    RIGHTARROW      - [27 91 67]
-    LEFTARROW       - [27 91 68]
+    UPARROW         - \x1b[A
+    DOWNARROW       - \x1b[B
+    RIGHTARROW      - \x1b[C
+    LEFTARROW       - \x1b[D
+
+    For more, just do 
+    
+    +++ 
+    cat -v
+    +++ 
+    
+    and print stuff
 
 3. Cursor Controls
 
