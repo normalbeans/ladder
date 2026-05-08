@@ -4,7 +4,7 @@ type LState struct {
 	CompModels                      map[int]Model
 	Changed                         map[int]bool
 	Focus                           int
-	WIDTH, HEIGHT, CURSORX, CURSORY int
+	WIDTH, HEIGHT, CURSORX, CURSORY int // CURSORX AND CURSORY are not used.
 }
 
 type ComponentFunction struct {
@@ -16,6 +16,8 @@ type ComponentFunction struct {
 type Command struct {
 	Actions map[string]ComponentFunction
 }
+
+type Data map[string]int
 
 type Model interface {
 	GetControls() Command

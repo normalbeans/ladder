@@ -7,8 +7,8 @@ import (
 
 type CounterModel struct {
 	Width, Height, Originx, Originy int
-	Count                           int
 	Controls                        Command
+	Data                            Data
 }
 
 func (c CounterModel) GetControls() Command {
@@ -33,17 +33,20 @@ func (c *Counter) Render(state LState) {
 	fmt.Printf("\x1b[%d;%dH", m.Originy, m.Originx)
 	for i := 0; i < m.Height; i++ {
 		if i == m.Height/2 {
-			fmt.Printf("\x1b[%d;%dH\x1b[0K\tCount: %d", m.Originy+i, 1, m.Count)
+			fmt.Printf("\x1b[%d;%dH\x1b[0K\tCount: %d", m.Originy+i, 1, m.Data["count"])
 		} else {
 			fmt.Printf("\x1b[%d;%dH", m.Originy+i, 1)
 		}
 	}
 }
 
+// not part of interface -> change this
 
-// not part of interface -> change this 
+func (c *Counter) DataModel(width, height, ox, oy int, data Data, controls Command) Model {
 
-func (c *Counter) DataModel(width, height, ox, oy int, controls Command) Model {
+	defaultData := Data{
+		"count": 0,
+	}
 
 	defaultControls := map[string]ComponentFunction{
 		"+": {
@@ -51,7 +54,7 @@ func (c *Counter) DataModel(width, height, ox, oy int, controls Command) Model {
 			Legend:  "Increment",
 			Function: func(state LState) LState {
 				cstate := state.CompModels[c.GetID()].(CounterModel)
-				cstate.Count++
+				cstate.Data["count"]++
 				state.CompModels[c.GetID()] = cstate
 				return state
 			},
@@ -61,7 +64,7 @@ func (c *Counter) DataModel(width, height, ox, oy int, controls Command) Model {
 			Legend:  "Decrement",
 			Function: func(state LState) LState {
 				cstate := state.CompModels[c.GetID()].(CounterModel)
-				cstate.Count--
+				cstate.Data["count"]--
 				state.CompModels[c.GetID()] = cstate
 				return state
 			},
@@ -71,7 +74,7 @@ func (c *Counter) DataModel(width, height, ox, oy int, controls Command) Model {
 			Legend:  "Reset to 0",
 			Function: func(state LState) LState {
 				cstate := state.CompModels[c.GetID()].(CounterModel)
-				cstate.Count = 0
+				cstate.Data["count"] = 0
 				state.CompModels[c.GetID()] = cstate
 				return state
 			},
@@ -79,12 +82,13 @@ func (c *Counter) DataModel(width, height, ox, oy int, controls Command) Model {
 	}
 
 	maps.Copy(defaultControls, controls.Actions)
+	maps.Copy(defaultData, data)
 	return CounterModel{
 		Width:   width,
 		Height:  height,
 		Originx: ox,
 		Originy: oy,
-		Count:   0,
+		Data:    defaultData,
 		Controls: Command{
 			Actions: defaultControls,
 		},

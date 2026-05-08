@@ -34,7 +34,7 @@ func main() {
 	}
 
 	b := &component.Box{}
-	bModel := b.DataModel(30, 5, 1, 1,
+	bModel := b.DataModel(30, 5, 1, 1, nil,
 		component.Command{
 			Actions: map[string]component.ComponentFunction{
 				"c": {
@@ -42,7 +42,7 @@ func main() {
 					Legend:  "Randomise color",
 					Function: func(state component.LState) component.LState {
 						cstate := state.CompModels[b.GetID()].(component.BoxModel)
-						cstate.Color = 31 + rand.IntN(2)
+						cstate.Data["color"] = 31 + rand.IntN(2)
 						state.CompModels[b.GetID()] = cstate
 						return state
 					},
@@ -53,6 +53,7 @@ func main() {
 
 	c := &component.Counter{}
 	cModel := c.DataModel(40, 5, 1, 6,
+		nil,
 		component.Command{
 			Actions: map[string]component.ComponentFunction{},
 		})
