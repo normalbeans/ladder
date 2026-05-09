@@ -36,16 +36,14 @@ func main() {
 	b := &component.Box{}
 	bModel := b.DataModel(30, 5, 1, 1, nil,
 		component.Command{
-			Actions: map[string]component.ComponentFunction{
-				"c": {
-					KeyHint: "c",
-					Legend:  "Randomise color",
-					Function: func(state component.LState) component.LState {
-						cstate := state.CompModels[b.GetID()].(component.BoxModel)
-						cstate.Data["color"] = 31 + rand.IntN(2)
-						state.CompModels[b.GetID()] = cstate
-						return state
-					},
+			"c": {
+				KeyHint: "c",
+				Legend:  "Randomise color",
+				Function: func(state component.LState) component.LState {
+					cstate := state.CompModels[b.GetID()].(component.BoxModel)
+					cstate.Data["color"] = 31 + rand.IntN(2)
+					state.CompModels[b.GetID()] = cstate
+					return state
 				},
 			},
 		})
@@ -54,17 +52,15 @@ func main() {
 	c := &component.Counter{}
 	cModel := c.DataModel(40, 5, 1, 6,
 		nil,
-		component.Command{
-			Actions: map[string]component.ComponentFunction{},
-		})
+		component.Command{})
 	l.RegisterComponent(c, cModel)
 
-	// b2 := &component.Box{}
-	// b2Model := b2.DataModel(60, 3, 1, 11)
-	// l.RegisterComponent(b2, b2Model)
+	LEGEND := &component.Legend{}
+	LEGENDMODEL := LEGEND.DataModel(100, 1, 1, 12, nil, nil, component.RenderAlways)
+	l.RegisterComponent(LEGEND, LEGENDMODEL)
 
 	go l.Snooper()
-	// go l.Looper()
+
 	<-l.Quit
 	term.Restore(int(os.Stdin.Fd()), l.OldState)
 	fmt.Print("\x1b[H\x1b[J\x1b[H\x1b[?25h")

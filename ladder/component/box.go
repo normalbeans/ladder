@@ -12,6 +12,7 @@ type BoxModel struct {
 	Originx, Originy int
 	Data             Data
 	Controls         Command
+	RenderPolicy	RenderPolicy
 }
 
 type Box struct {
@@ -22,15 +23,13 @@ func getRandomColor() int {
 	return 31 + rand.IntN(5)
 }
 
-// func (b *Box) IncreaseWidth(state LState) LState {
-// 	currentModel := state.CompModels[b.id].(BoxModel)
-// 	currentModel.Width += 1
-// 	state.CompModels[b.id] = currentModel
-// 	return state
-// }
 
 func (b BoxModel) GetControls() Command {
 	return b.Controls
+}
+
+func (b BoxModel) GetRenderControls() RenderPolicy {
+	return b.RenderPolicy
 }
 
 // Implement interface
@@ -66,7 +65,7 @@ func (b *Box) DataModel(width, height, ox, oy int, data Data, controls Command) 
 		"color": getRandomColor(),
 	}
 
-	defaultControls := map[string]ComponentFunction{
+	defaultControls := Command{
 		"c": {
 			KeyHint: "c",
 			Legend:  "Randomise color",
@@ -79,17 +78,15 @@ func (b *Box) DataModel(width, height, ox, oy int, data Data, controls Command) 
 		},
 	}
 
-	maps.Copy(defaultControls, controls.Actions)
+	maps.Copy(defaultControls, controls)
 	maps.Copy(defaultData, data)
 
 	return BoxModel{
-		Width:   width,
-		Height:  height,
-		Originx: ox,
-		Originy: oy,
-		Data:    defaultData,
-		Controls: Command{
-			Actions: defaultControls,
-		},
+		Width:    width,
+		Height:   height,
+		Originx:  ox,
+		Originy:  oy,
+		Data:     defaultData,
+		Controls: defaultControls,
 	}
 }

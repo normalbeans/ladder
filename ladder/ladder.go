@@ -3,7 +3,6 @@ package ladder
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/normalbeans/ladder/ladder/component"
 	"github.com/normalbeans/ladder/ladder/key"
@@ -29,35 +28,24 @@ func (l *Ladder) RegisterComponent(c component.Component, m component.Model) {
 func (l *Ladder) Render() {
 
 	for i := 0; i < len(l.Components); i++ {
-		if l.State.Changed[i] {
+		if l.State.Changed[i] || l.State.CompModels[i].GetRenderControls() == component.RenderAlways {
 			l.Components[i].Render(l.State)
 			l.State.Changed[i] = false
 		}
 	}
 	// probably move this into its own component
-	var focusindex strings.Builder
-	for _, v := range l.State.CompModels[l.State.Focus].GetControls().Actions {
-		fmt.Fprintf(&focusindex, " %s - %s |", v.KeyHint, v.Legend)
-	}
-	fmt.Printf("\x1b[%d;%dH\x1b[0K"+focusindex.String(), l.State.HEIGHT+1, 1)
+	// var focusindex strings.Builder
+	// for _, v := range l.State.CompModels[l.State.Focus].GetControls() {
+	// 	fmt.Fprintf(&focusindex, " %s - %s |", v.KeyHint, v.Legend)
+	// }
+	// fmt.Printf("\x1b[%d;%dH\x1b[0K"+focusindex.String(), l.State.HEIGHT+1, 1)
 }
-
-// func (l *Ladder) Looper() {
-// 	for {
-// 		select {
-// 		case <-l.Quit:
-// 			return
-// 		default:
-// 			l.Render()
-// 			time.Sleep(16 * time.Millisecond)
-// 		}
-// 	}
-// }
 
 func (l *Ladder) Snooper() {
 	fmt.Print("\x1b[H\x1b[J\x1b[?25l")
+	l.Render()
 	for {
-		l.Render()
+		rerender := false
 		buf := make([]byte, 8)
 		n, err := os.Stdin.Read(buf)
 		data := string(buf[:n])
@@ -69,14 +57,19 @@ func (l *Ladder) Snooper() {
 			close(l.Quit)
 		case key.ArrowUp:
 			l.State.Focus = (l.State.Focus - 1 + len(l.State.CompModels)) % len(l.State.CompModels)
+			rerender = true
 		case key.ArrowDown:
 			l.State.Focus = (l.State.Focus + 1) % len(l.State.CompModels)
+			rerender = true
 		default:
-			if executor, ok := l.State.CompModels[l.State.Focus].GetControls().Actions[string(data)]; ok {
+			if executor, ok := l.State.CompModels[l.State.Focus].GetControls()[string(data)]; ok {
 				l.State = executor.Function(l.State)
 				l.State.Changed[l.State.Focus] = true
+				rerender = true
 			}
 		}
-
+		if rerender {
+			l.Render()
+		}
 	}
 }

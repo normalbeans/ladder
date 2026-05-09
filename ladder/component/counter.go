@@ -9,10 +9,15 @@ type CounterModel struct {
 	Width, Height, Originx, Originy int
 	Controls                        Command
 	Data                            Data
+	RenderPolicy                    RenderPolicy
 }
 
 func (c CounterModel) GetControls() Command {
 	return c.Controls
+}
+
+func (c CounterModel) GetRenderControls() RenderPolicy {
+	return c.RenderPolicy
 }
 
 type Counter struct {
@@ -48,7 +53,7 @@ func (c *Counter) DataModel(width, height, ox, oy int, data Data, controls Comma
 		"count": 0,
 	}
 
-	defaultControls := map[string]ComponentFunction{
+	defaultControls := Command{
 		"+": {
 			KeyHint: "+",
 			Legend:  "Increment",
@@ -81,16 +86,14 @@ func (c *Counter) DataModel(width, height, ox, oy int, data Data, controls Comma
 		},
 	}
 
-	maps.Copy(defaultControls, controls.Actions)
+	maps.Copy(defaultControls, controls)
 	maps.Copy(defaultData, data)
 	return CounterModel{
-		Width:   width,
-		Height:  height,
-		Originx: ox,
-		Originy: oy,
-		Data:    defaultData,
-		Controls: Command{
-			Actions: defaultControls,
-		},
+		Width:    width,
+		Height:   height,
+		Originx:  ox,
+		Originy:  oy,
+		Data:     defaultData,
+		Controls: defaultControls,
 	}
 }

@@ -1,0 +1,100 @@
+======================================================================
+Title   : Some code snippet backups related to Ladder
+Author  : nna
+Date    : 08-05-2026
+======================================================================
+
+1. Event Horizon
+
+    +++
+
+    var CURSORX int = 1
+    var CURSORY int = 1
+
+    func printRectangleAtCurrent(w, h int) {
+        if h%2 == 0{
+
+        }
+        for j := 0; j < h; j++ {
+            switch j {
+            case 0:
+                fmt.Printf("\033[%d;%dH\u2588"+strings.Repeat("\u2580", w-2)+"\u2588", CURSORY+j, CURSORX)
+            case h - 1:
+                fmt.Printf("\033[%d;%dH\u2588"+strings.Repeat("\u2584", w-2)+"\u2588", CURSORY+j, CURSORX)
+            default:
+                fmt.Printf("\033[%d;%dH\u2588"+strings.Repeat(" ", w-2)+"\u2588", CURSORY+j, CURSORX)
+            }
+        }
+    }
+
+    func displayCoord() {
+        fmt.Printf("\033[%d;%dH\033[0KCord: (%d, %d)\t| Ctrl+C - Quit | P - Draw Rectangle", 21, 1, CURSORX, CURSORY)
+    }
+
+    func snoopy(quit chan byte, w, h int) {
+        // just listen keystrokes and print them back
+        // topblock := true
+        // snooper := bufio.NewReader(os.Stdin)
+        for {
+
+            fmt.Printf("\033[%d;%dH", CURSORY, CURSORX)
+
+            buf := make([]byte, 8)
+            n, err := os.Stdin.Read(buf)
+            data := buf[:n]
+            if err != nil {
+                panic(err)
+            }
+            if data[0] == 0x03 {
+                close(quit)
+            } else if data[0] == 27 && data[1] == 91 {
+                switch data[2] {
+                case 65:
+                    CURSORY = max(CURSORY-1, 1)
+                    // topblock = !topblock
+                case 66:
+                    CURSORY = min(CURSORY+1, h)
+                    // topblock = !topblock
+                case 67:
+                    CURSORX = min(CURSORX+1, w)
+                case 68:
+                    CURSORX = max(CURSORX-1, 1)
+                }
+                displayCoord()
+            } else if data[0] == 112 || data[0] == 80 {
+                printRectangleAtCurrent(10, 5)
+            } else {
+                if CURSORX < w {
+                    CURSORX = min(CURSORX+1, w)
+                    fmt.Print(data)
+                    // fmt.Print(string(data))
+                    displayCoord()
+                }
+            }
+
+        }
+    }
+
+    func main() {
+
+        WIDTH, HEIGHT := 100, 20
+
+        originalState, err := term.MakeRaw(int(os.Stdin.Fd()))
+        if err != nil {
+            panic(err)
+        }
+        defer term.Restore(int(os.Stdin.Fd()), originalState)
+        quit := make(chan byte, 1)
+        fmt.Print("\033[H\033[J")
+        go snoopy(quit, WIDTH, HEIGHT)
+        displayCoord()
+        <-quit
+        fmt.Print("\033[H\033[J\033[?25h")
+    }
+
+    +++
+
+
+======================================================================
+Ending block
+======================================================================

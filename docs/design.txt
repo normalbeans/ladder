@@ -6,22 +6,23 @@ Date    : 02-05-2026
 
 0. Pending Tasks
 
+    - IMPORTANT: Refactor the code to remove some verbosity. Check if all thos interfaces are truly needed.
+    - IMPORTANT : Pluggable snooper loop
+    - IMPORTANT: term state handling from the ladder file, quit function abstraction
     - Dynamic origins; register component should take care of that
     - position to render from must be passed to the component; so that other component size chagnes dont 
       overwrite the current component
-    - Way to register functionality must be given as a function interface( is that even correct?)
-      Essentially, every function that is used to update the Model must follow same signature and must be 
-      part of the model itself, not a method. Function as data to struct, not method. -- DONE NEEDS TO BE RECHECKED
-    - Data can also be pluggable, make the component  just a renderer with some default data already plugged in
-    - Legend component; default or pluggable?      
+    - Legend component; default or pluggable
+        PLuggable, but can be improved instead of relying on RenderAlways i think.    
     - DataModel can be removed i think, it just returns stuff.
     - IMPORTANT: Remove randomness from legend
+    - Bundle DataModel into a struct or something that makes sense between products
 
 ---
 
 1. About 
 
-    This documetn describes the evolving design for a simple TUI Framework that can be used to build
+    This document describes the evolving design for a simple TUI Framework that can be used to build
     TUI Applications in golang. The core loop is MVU based and everything is written from scratch.
     TUIs are really cool.
 
@@ -29,98 +30,6 @@ Date    : 02-05-2026
 
 2. Core Loop
     
-
----
-
-100. Backup
-
-    +++
-
-    var CURSORX int = 1
-    var CURSORY int = 1
-
-    func printRectangleAtCurrent(w, h int) {
-        if h%2 == 0{
-
-        }
-        for j := 0; j < h; j++ {
-            switch j {
-            case 0:
-                fmt.Printf("\033[%d;%dH\u2588"+strings.Repeat("\u2580", w-2)+"\u2588", CURSORY+j, CURSORX)
-            case h - 1:
-                fmt.Printf("\033[%d;%dH\u2588"+strings.Repeat("\u2584", w-2)+"\u2588", CURSORY+j, CURSORX)
-            default:
-                fmt.Printf("\033[%d;%dH\u2588"+strings.Repeat(" ", w-2)+"\u2588", CURSORY+j, CURSORX)
-            }
-        }
-    }
-
-    func displayCoord() {
-        fmt.Printf("\033[%d;%dH\033[0KCord: (%d, %d)\t| Ctrl+C - Quit | P - Draw Rectangle", 21, 1, CURSORX, CURSORY)
-    }
-
-    func snoopy(quit chan byte, w, h int) {
-        // just listen keystrokes and print them back
-        // topblock := true
-        // snooper := bufio.NewReader(os.Stdin)
-        for {
-
-            fmt.Printf("\033[%d;%dH", CURSORY, CURSORX)
-
-            buf := make([]byte, 8)
-            n, err := os.Stdin.Read(buf)
-            data := buf[:n]
-            if err != nil {
-                panic(err)
-            }
-            if data[0] == 0x03 {
-                close(quit)
-            } else if data[0] == 27 && data[1] == 91 {
-                switch data[2] {
-                case 65:
-                    CURSORY = max(CURSORY-1, 1)
-                    // topblock = !topblock
-                case 66:
-                    CURSORY = min(CURSORY+1, h)
-                    // topblock = !topblock
-                case 67:
-                    CURSORX = min(CURSORX+1, w)
-                case 68:
-                    CURSORX = max(CURSORX-1, 1)
-                }
-                displayCoord()
-            } else if data[0] == 112 || data[0] == 80 {
-                printRectangleAtCurrent(10, 5)
-            } else {
-                if CURSORX < w {
-                    CURSORX = min(CURSORX+1, w)
-                    fmt.Print(data)
-                    // fmt.Print(string(data))
-                    displayCoord()
-                }
-            }
-
-        }
-    }
-
-    func main() {
-
-        WIDTH, HEIGHT := 100, 20
-
-        originalState, err := term.MakeRaw(int(os.Stdin.Fd()))
-        if err != nil {
-            panic(err)
-        }
-        defer term.Restore(int(os.Stdin.Fd()), originalState)
-        quit := make(chan byte, 1)
-        fmt.Print("\033[H\033[J")
-        go snoopy(quit, WIDTH, HEIGHT)
-        displayCoord()
-        <-quit
-        fmt.Print("\033[H\033[J\033[?25h")
-    }
-
-    +++
 
 
 ======================================================================
