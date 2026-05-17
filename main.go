@@ -7,6 +7,7 @@ import (
 
 	"github.com/normalbeans/ladder/ladder"
 	"github.com/normalbeans/ladder/ladder/component"
+	"github.com/normalbeans/ladder/ladder/key"
 	"golang.org/x/term"
 )
 
@@ -31,6 +32,7 @@ func main() {
 		},
 		Quit:     make(chan byte, 1),
 		OldState: originalState,
+		Input:    make(chan key.Key),
 	}
 
 	b := &component.Box{}
@@ -60,6 +62,7 @@ func main() {
 	l.RegisterComponent(LEGEND, LEGENDMODEL)
 
 	go l.Snooper()
+	go l.Looper()
 
 	<-l.Quit
 	term.Restore(int(os.Stdin.Fd()), l.OldState)

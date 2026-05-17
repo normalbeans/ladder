@@ -1,12 +1,14 @@
 package key
 
+type Key string
+
 // add more here ig
 const (
-	CtrlC      = "\x03"
-	BackSpace  = "\x08"
-	Escape     = "\x1b"
-	ArrowUp    = "\x1b[A"
-	ArrowDown  = "\x1b[B"
-	ArrowRight = "\x1b[C"
-	ArrowLeft  = "\x1b[D"
+	CtrlC      Key = "\x03"
+	BackSpace  Key = "\x08"
+	Escape     Key = "\x1b"
+	ArrowUp    Key = "\x1b[A"
+	ArrowDown  Key = "\x1b[B"
+	ArrowRight Key = "\x1b[C"
+	ArrowLeft  Key = "\x1b[D"
 )
