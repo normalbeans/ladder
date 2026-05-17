@@ -9,6 +9,8 @@ Date    : 02-05-2026
     - IMPORTANT: Refactor the code to remove some verbosity. Check if all thos interfaces are truly needed.
     - IMPORTANT : Pluggable snooper loop
     - IMPORTANT: term state handling from the ladder file, quit function abstraction
+    - IMPORTANT: Register data of one component to another 
+    - IMPORTANT: Async background functions that push data to ladder to mutate state.
     - Dynamic origins; register component should take care of that
     - position to render from must be passed to the component; so that other component size chagnes dont 
       overwrite the current component
@@ -23,12 +25,16 @@ Date    : 02-05-2026
 1. About 
 
     This document describes the evolving design for a simple TUI Framework that can be used to build
-    TUI Applications in golang. The core loop is MVU based and everything is written from scratch.
-    TUIs are really cool.
+    TUI Applications in golang. The core loop is based on MVU architecture.
 
 ---
 
-2. Core Loop
+2. Interfaces
+
+
+---
+
+3. Core Loop
     
 
 
