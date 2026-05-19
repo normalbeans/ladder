@@ -1,5 +1,7 @@
 package component
 
+import "context"
+
 // Global state owned by ladder
 type LState struct {
 	CompModels                      map[int]Model
@@ -20,6 +22,8 @@ const (
 type Model interface {
 	GetControls() Command
 	GetRenderControls() RenderPolicy
+	GetBackgroundFunc() []BackgroundFunc
+	AsyncUpdate(data any) (Model, bool)
 }
 
 // Funtion struct for component behaviour
@@ -40,3 +44,11 @@ type Component interface {
 	Render(LState)
 	// DataModel(...) Model - not part of inteface but highly recommended for registering
 }
+
+// background running functions
+type BackgroundMsg struct {
+	ID   int
+	Data any
+}
+
+type BackgroundFunc func(ctx context.Context, id int, c chan<- BackgroundMsg)

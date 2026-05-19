@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand/v2"
 	"os"
@@ -19,6 +20,7 @@ func main() {
 	}
 	defer term.Restore(int(os.Stdin.Fd()), originalState)
 
+	ctx, cancel := context.WithCancel(context.Background())
 	l := ladder.Ladder{
 		Components: make(map[int]component.Component),
 		State: component.LState{
@@ -30,9 +32,12 @@ func main() {
 			CURSORY:    1,
 			Changed:    make(map[int]bool),
 		},
-		Quit:     make(chan byte, 1),
-		OldState: originalState,
-		Input:    make(chan key.Key),
+		Quit:       make(chan byte, 1),
+		OldState:   originalState,
+		Input:      make(chan key.Key),
+		Background: make(chan component.BackgroundMsg),
+		Ctx:        ctx,
+		Cancel:     cancel,
 	}
 
 	b := &component.Box{}

@@ -20,6 +20,14 @@ func (c CounterModel) GetRenderControls() RenderPolicy {
 	return c.RenderPolicy
 }
 
+func (c CounterModel) GetBackgroundFunc() []BackgroundFunc {
+	return nil
+}
+
+func (c CounterModel) AsyncUpdate(data any) (Model, bool) {
+	return c, false
+}
+
 type Counter struct {
 	id int
 }

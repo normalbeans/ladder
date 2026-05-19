@@ -1,10 +1,12 @@
 package component
 
 import (
+	"context"
 	"fmt"
 	"maps"
 	"math/rand/v2"
 	"strings"
+	"time"
 )
 
 type BoxModel struct {
@@ -12,17 +14,30 @@ type BoxModel struct {
 	Originx, Originy int
 	Data             Data
 	Controls         Command
-	RenderPolicy	RenderPolicy
+	RenderPolicy     RenderPolicy
 }
 
 type Box struct {
 	id int
 }
 
+// sample background func
+func setRandomColorOnTimer(ctx context.Context, id int, ch chan<- BackgroundMsg) {
+	timer := time.NewTicker(3 * time.Second)
+	defer timer.Stop()
+	for {
+		select {
+		case <-timer.C:
+			ch <- BackgroundMsg{ID: id, Data: getRandomColor()}
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
 func getRandomColor() int {
 	return 31 + rand.IntN(5)
 }
-
 
 func (b BoxModel) GetControls() Command {
 	return b.Controls
@@ -30,6 +45,15 @@ func (b BoxModel) GetControls() Command {
 
 func (b BoxModel) GetRenderControls() RenderPolicy {
 	return b.RenderPolicy
+}
+
+func (b BoxModel) GetBackgroundFunc() []BackgroundFunc {
+	return []BackgroundFunc{setRandomColorOnTimer}
+}
+
+func (b BoxModel) AsyncUpdate(data any) (Model, bool) {
+	b.Data["color"] = data.(int)
+	return b, true
 }
 
 // Implement interface

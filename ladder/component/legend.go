@@ -21,6 +21,14 @@ func (l LegendModel) GetRenderControls() RenderPolicy {
 	return l.RenderPolicy
 }
 
+func (l LegendModel) GetBackgroundFunc() []BackgroundFunc {
+	return nil
+}
+
+func (l LegendModel) AsyncUpdate(data any) (Model, bool) {
+	return l, false
+}
+
 type Legend struct {
 	id int
 }

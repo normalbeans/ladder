@@ -1,6 +1,7 @@
 package ladder
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -19,6 +20,9 @@ type Ladder struct {
 	OldState   *term.State
 	Quit       chan byte
 	Input      chan key.Key
+	Background chan component.BackgroundMsg
+	Ctx        context.Context
+	Cancel     context.CancelFunc
 }
 
 func (l *Ladder) RegisterComponent(c component.Component, m component.Model) {
@@ -27,6 +31,11 @@ func (l *Ladder) RegisterComponent(c component.Component, m component.Model) {
 	l.State.CompModels[newID] = m
 	l.State.Changed[newID] = true
 	l.Components[newID] = c
+
+	for _, f := range m.GetBackgroundFunc() {
+		fn := f
+		go fn(l.Ctx, newID, l.Background)
+	}
 }
 
 func (l *Ladder) Render() {
@@ -37,12 +46,6 @@ func (l *Ladder) Render() {
 			l.State.Changed[i] = false
 		}
 	}
-	// probably move this into its own component
-	// var focusindex strings.Builder
-	// for _, v := range l.State.CompModels[l.State.Focus].GetControls() {
-	// 	fmt.Fprintf(&focusindex, " %s - %s |", v.KeyHint, v.Legend)
-	// }
-	// fmt.Printf("\x1b[%d;%dH\x1b[0K"+focusindex.String(), l.State.HEIGHT+1, 1)
 }
 
 func (l *Ladder) Looper() {
@@ -56,6 +59,7 @@ func (l *Ladder) Looper() {
 		case data := <-l.Input:
 			switch data {
 			case key.CtrlC, key.Escape:
+				l.Cancel()
 				close(l.Quit)
 			case key.ArrowUp:
 				l.State.Focus = (l.State.Focus - 1 + len(l.State.CompModels)) % len(l.State.CompModels)
@@ -69,6 +73,12 @@ func (l *Ladder) Looper() {
 					l.State.Changed[l.State.Focus] = true
 					// rerender = true
 				}
+			}
+		case data := <-l.Background:
+			nm, updated := l.State.CompModels[data.ID].AsyncUpdate(data.Data)
+			if updated {
+				l.State.CompModels[data.ID] = nm
+				l.State.Changed[data.ID] = true
 			}
 		case <-ticker.C:
 			l.Render()
