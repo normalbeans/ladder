@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"math/rand/v2"
 	"os"
 
 	"github.com/normalbeans/ladder/ladder"
 	"github.com/normalbeans/ladder/ladder/component"
 	"github.com/normalbeans/ladder/ladder/key"
+	"github.com/normalbeans/ladder/ladder/state"
 	"golang.org/x/term"
 )
 
@@ -23,7 +23,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	l := ladder.Ladder{
 		Components: make(map[int]component.Component),
-		State: component.LState{
+		State: state.LState{
 			CompModels: make(map[int]component.Model),
 			Focus:      0,
 			WIDTH:      100,
@@ -41,30 +41,23 @@ func main() {
 	}
 
 	b := &component.Box{}
-	bModel := b.DataModel(30, 5, 1, 1, nil,
-		component.Command{
-			"c": {
-				KeyHint: "c",
-				Legend:  "Randomise color",
-				Function: func(state component.LState) component.LState {
-					cstate := state.CompModels[b.GetID()].(component.BoxModel)
-					cstate.Data["color"] = 31 + rand.IntN(2)
-					state.CompModels[b.GetID()] = cstate
-					return state
-				},
-			},
-		})
+	bModel := b.Init(component.BoxModel{
+		// Width:   30,
+		Height:  5,
+		Originx: 1,
+		Originy: 1,
+	})
 	l.RegisterComponent(b, bModel)
 
-	c := &component.Counter{}
-	cModel := c.DataModel(40, 5, 1, 6,
-		nil,
-		component.Command{})
-	l.RegisterComponent(c, cModel)
+	// c := &component.Counter{}
+	// cModel := c.DataModel(40, 5, 1, 6,
+	// 	nil,
+	// 	component.Command{})
+	// l.RegisterComponent(c, cModel)
 
-	LEGEND := &component.Legend{}
-	LEGENDMODEL := LEGEND.DataModel(100, 1, 1, 12, nil, nil, component.RenderAlways)
-	l.RegisterComponent(LEGEND, LEGENDMODEL)
+	// LEGEND := &component.Legend{}
+	// LEGENDMODEL := LEGEND.DataModel(100, 1, 1, 12, nil, nil, component.RenderAlways)
+	// l.RegisterComponent(LEGEND, LEGENDMODEL)
 
 	go l.Snooper()
 	go l.Looper()

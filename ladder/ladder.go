@@ -8,6 +8,7 @@ import (
 
 	"github.com/normalbeans/ladder/ladder/component"
 	"github.com/normalbeans/ladder/ladder/key"
+	"github.com/normalbeans/ladder/ladder/state"
 	"golang.org/x/term"
 )
 
@@ -15,7 +16,7 @@ type Msg interface{}
 
 // Ladder
 type Ladder struct {
-	State      component.LState
+	State      state.LState
 	Components map[int]component.Component
 	OldState   *term.State
 	Quit       chan byte
@@ -39,16 +40,19 @@ func (l *Ladder) RegisterComponent(c component.Component, m component.Model) {
 }
 
 func (l *Ladder) Render() {
-
 	for i := 0; i < len(l.Components); i++ {
-		if l.State.Changed[i] || l.State.CompModels[i].GetRenderControls() == component.RenderAlways {
-			l.Components[i].Render(l.State)
+		if l.State.Changed[i] || l.State.CompModels[i].GetReRenderPolicy() == component.ReRenderAlways {
+			l.Components[i].Render(l.State.CompModels[l.State.Focus])
 			l.State.Changed[i] = false
 		}
 	}
 }
 
 func (l *Ladder) Looper() {
+	if len(l.Components) == 0 {
+		l.Cancel()
+		close(l.Quit)
+	}
 	fmt.Print("\x1b[H\x1b[J\x1b[?25l")
 	ticker := time.NewTicker(16 * time.Millisecond)
 	defer ticker.Stop()
@@ -69,13 +73,17 @@ func (l *Ladder) Looper() {
 				// rerender = true
 			default:
 				if executor, ok := l.State.CompModels[l.State.Focus].GetControls()[string(data)]; ok {
-					l.State = executor.Function(l.State)
-					l.State.Changed[l.State.Focus] = true
+					actionresult := executor.Function(nil)
+					nmodel, changed := l.State.CompModels[l.State.Focus].Update(l.State.CompModels[l.State.Focus], actionresult)
+					if changed {
+						l.State.CompModels[l.State.Focus] = nmodel
+						l.State.Changed[l.State.Focus] = true
+					}
 					// rerender = true
 				}
 			}
 		case data := <-l.Background:
-			nm, updated := l.State.CompModels[data.ID].AsyncUpdate(data.Data)
+			nm, updated := l.State.CompModels[data.ID].Update(l.State.CompModels[data.ID], data.Data)
 			if updated {
 				l.State.CompModels[data.ID] = nm
 				l.State.Changed[data.ID] = true

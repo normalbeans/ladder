@@ -1,47 +1,55 @@
 package component
 
-import "context"
+import (
+	"context"
+)
 
-// Global state owned by ladder
-type LState struct {
-	CompModels                      map[int]Model
-	Changed                         map[int]bool
-	Focus                           int
-	WIDTH, HEIGHT, CURSORX, CURSORY int // CURSORX AND CURSORY are not used.
-}
-
-// render policies
-type RenderPolicy int
+// focusable
+type Focusable int
 
 const (
-	RenderAlways = iota
-	RenderNever
+	FocusUnset = iota
+	FocusTrue
+	FocusFalse
+)
+
+// render policies
+type ReRenderPolicy int
+
+const (
+	ReRenderUnset = iota
+	ReRenderOnChange
+	ReRenderNever
+	ReRenderAlways
 )
 
 // Component data model interface.
 type Model interface {
 	GetControls() Command
-	GetRenderControls() RenderPolicy
+	GetReRenderPolicy() ReRenderPolicy
+	IsFocusable() Focusable
+	GetDependents() []int // avoid self dependency
 	GetBackgroundFunc() []BackgroundFunc
-	AsyncUpdate(data any) (Model, bool)
+	Update(Model, any) (Model, bool)
 }
 
 // Funtion struct for component behaviour
 type ComponentFunction struct {
 	KeyHint  string
 	Legend   string
-	Function func(LState) LState
+	Function func(data any) any
 }
 
 type Command map[string]ComponentFunction
 
-type Data map[string]int
+type Data map[string]any
 
 // Component ( not model, but renderer that uses the model)
 type Component interface {
 	SetID(int)
 	GetID() int
-	Render(LState)
+	Render(Model)
+	Init(Model) Model
 	// DataModel(...) Model - not part of inteface but highly recommended for registering
 }
 
