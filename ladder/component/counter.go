@@ -1,6 +1,7 @@
 package component
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 )
@@ -17,14 +18,31 @@ var defaultCounterModel = CounterModel{
 		"+": {
 			KeyHint: "+",
 			Legend:  "Increment",
+			Function: func(uc UpdateContext) (any, error) {
+				self, ok := uc.SelfModel.(CounterModel)
+				if !ok {
+					return nil, errors.New("ERROR: Assertion failed")
+				}
+				return self.Data["count"].(int) + 1, nil
+			},
 		},
 		"-": {
 			KeyHint: "-",
 			Legend:  "Decrement",
+			Function: func(uc UpdateContext) (any, error) {
+				self, ok := uc.SelfModel.(CounterModel)
+				if !ok {
+					return nil, errors.New("ERROR: Assertion failed")
+				}
+				return self.Data["count"].(int) - 1, nil
+			},
 		},
 		"z": {
 			KeyHint: "z",
 			Legend:  "Reset to 0",
+			Function: func(uc UpdateContext) (any, error) {
+				return 0, nil
+			},
 		},
 	},
 	ReRenderPolicy: ReRenderOnChange,
@@ -65,18 +83,6 @@ func (c CounterModel) Update(u UpdateContext) (Model, bool) {
 	self, ok := u.SelfModel.(CounterModel)
 	if !ok {
 		return c, false
-	}
-	if u.KeyBinding != "" {
-		switch u.KeyBinding {
-		case "+":
-			self.Data["count"] = self.Data["count"].(int) + 1
-		case "-":
-			self.Data["count"] = self.Data["count"].(int) - 1
-		case "z":
-			self.Data["count"] = 0
-		default:
-			return self, false
-		}
 	}
 	if u.Data != nil {
 		c, ok := u.Data.(int)

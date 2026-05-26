@@ -22,9 +22,9 @@ var defaultBoxModel = BoxModel{
 		"c": {
 			KeyHint: "c",
 			Legend:  "Randomise color",
-			// Function: func(data any) any {
-			// 	return getRandomColor()
-			// },
+			Function: func(u UpdateContext) (any, error) {
+				return getRandomColor(), nil
+			},
 		},
 	},
 	ReRenderPolicy: ReRenderOnChange,
@@ -88,15 +88,6 @@ func (b BoxModel) Update(u UpdateContext) (Model, bool) {
 	self, ok := u.SelfModel.(BoxModel)
 	if !ok {
 		return b, false
-	}
-	if u.KeyBinding != "" {
-
-		switch u.KeyBinding {
-		case "c":
-			self.Data["color"] = getRandomColor()
-		default:
-			return self, false
-		}
 	}
 	if u.Data != nil {
 		c, ok := u.Data.(int)

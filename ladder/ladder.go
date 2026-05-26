@@ -89,7 +89,7 @@ func (l *Ladder) Looper() {
 				}
 				// rerender = true
 			default:
-				if _, ok := l.State.CompModels[l.State.Focus].GetControls()[string(data)]; ok {
+				if executor, ok := l.State.CompModels[l.State.Focus].GetControls()[string(data)]; ok {
 
 					updateContext := component.UpdateContext{
 						SelfModel: l.State.CompModels[l.State.Focus],
@@ -100,10 +100,14 @@ func (l *Ladder) Looper() {
 						Data:       nil,
 					}
 
-					nmodel, changed := l.State.CompModels[l.State.Focus].Update(updateContext)
-					if changed {
-						l.State.CompModels[l.State.Focus] = nmodel
-						l.State.Changed[l.State.Focus] = true
+					updateData, err := executor.Function(updateContext)
+					if err == nil {
+						updateContext.Data = updateData
+						nmodel, changed := l.State.CompModels[l.State.Focus].Update(updateContext)
+						if changed {
+							l.State.CompModels[l.State.Focus] = nmodel
+							l.State.Changed[l.State.Focus] = true
+						}
 					}
 					// rerender = true
 				}

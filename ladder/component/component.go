@@ -47,9 +47,9 @@ type Model interface {
 
 // Funtion struct for component behaviour
 type ComponentFunction struct {
-	KeyHint string
-	Legend  string
-	// Function func(data any) any
+	KeyHint  string
+	Legend   string
+	Function func(UpdateContext) (any, error)
 }
 
 type Command map[string]ComponentFunction

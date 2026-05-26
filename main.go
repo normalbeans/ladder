@@ -49,12 +49,30 @@ func main() {
 	})
 	l.RegisterComponent(b, bModel)
 
+	b2 := &component.Box{}
+	b2Model := b2.Init(component.BoxModel{
+		Width:   30,
+		Height:  5,
+		Originx: 1,
+		Originy: 6,
+		Controls: component.Command{
+			"c": component.ComponentFunction{
+				KeyHint: "c",
+				Legend:  "SetToRed",
+				Function: func(u component.UpdateContext) (any, error) {
+					return 31, nil
+				},
+			},
+		},
+	})
+	l.RegisterComponent(b2, b2Model)
+
 	c := &component.Counter{}
 	cModel := c.Init(component.CounterModel{
 		Width:   40,
-		Height:  3,
+		Height:  1,
 		Originx: 1,
-		Originy: 6,
+		Originy: 13,
 	})
 	l.RegisterComponent(c, cModel)
 
@@ -63,7 +81,7 @@ func main() {
 		Width:   100,
 		Height:  1,
 		Originx: 1,
-		Originy: 12,
+		Originy: 15,
 	})
 	l.RegisterComponent(LEGEND, LEGENDMODEL)
 

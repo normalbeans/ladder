@@ -118,7 +118,7 @@ func generateLegendString(c Command) string {
 	})
 
 	for i := range keys {
-		fmt.Fprintf(&focusindex, " %s - %s |", c[keys[i]].KeyHint, c[keys[i]].Legend)
+		fmt.Fprintf(&focusindex, "| %s - %s |", c[keys[i]].KeyHint, c[keys[i]].Legend)
 	}
 	return focusindex.String()
 }
