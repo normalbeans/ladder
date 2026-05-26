@@ -10,9 +10,9 @@ import (
 )
 
 // this is to help with Init command.
-var DefaultBoxModel = BoxModel{
+var defaultBoxModel = BoxModel{
 	Width:   100,
-	Height:  30,
+	Height:  5,
 	Originx: 1,
 	Originy: 1,
 	Data: Data{
@@ -22,9 +22,9 @@ var DefaultBoxModel = BoxModel{
 		"c": {
 			KeyHint: "c",
 			Legend:  "Randomise color",
-			Function: func(data any) any {
-				return getRandomColor()
-			},
+			// Function: func(data any) any {
+			// 	return getRandomColor()
+			// },
 		},
 	},
 	ReRenderPolicy: ReRenderOnChange,
@@ -84,15 +84,28 @@ func (b BoxModel) GetBackgroundFunc() []BackgroundFunc {
 	return []BackgroundFunc{setRandomColorOnTimer}
 }
 
-func (b BoxModel) Update(m Model, data any) (Model, bool) {
-	// data can be anything
-	newcolor, ok := data.(int)
+func (b BoxModel) Update(u UpdateContext) (Model, bool) {
+	self, ok := u.SelfModel.(BoxModel)
 	if !ok {
-		return m, false
+		return b, false
 	}
-	nm := m.(BoxModel)
-	nm.Data["color"] = newcolor
-	return nm, true
+	if u.KeyBinding != "" {
+
+		switch u.KeyBinding {
+		case "c":
+			self.Data["color"] = getRandomColor()
+		default:
+			return self, false
+		}
+	}
+	if u.Data != nil {
+		c, ok := u.Data.(int)
+		if !ok {
+			return self, false
+		}
+		self.Data["color"] = c
+	}
+	return self, true
 }
 
 // helper to merge defaults to model passed from user.
@@ -101,46 +114,46 @@ func (b BoxModel) usingDefault(m Model) Model {
 	userModel := m.(BoxModel)
 
 	if userModel.Width == 0 {
-		userModel.Width = DefaultBoxModel.Width
+		userModel.Width = defaultBoxModel.Width
 	}
 	if userModel.Height == 0 {
-		userModel.Height = DefaultBoxModel.Height
+		userModel.Height = defaultBoxModel.Height
 	}
 	if userModel.Originx == 0 {
-		userModel.Originx = DefaultBoxModel.Originx
+		userModel.Originx = defaultBoxModel.Originx
 	}
 	if userModel.Originy == 0 {
-		userModel.Originy = DefaultBoxModel.Originy
+		userModel.Originy = defaultBoxModel.Originy
 	}
 
 	if userModel.Data == nil {
-		userModel.Data = DefaultBoxModel.Data
+		userModel.Data = defaultBoxModel.Data
 	} else {
 		tempData := make(Data)
-		maps.Copy(tempData, DefaultBoxModel.Data)
+		maps.Copy(tempData, defaultBoxModel.Data)
 		maps.Copy(tempData, userModel.Data)
 		userModel.Data = tempData
 	}
 
 	if userModel.Controls == nil {
-		userModel.Controls = DefaultBoxModel.Controls
+		userModel.Controls = defaultBoxModel.Controls
 	} else {
 		tempControls := make(Command)
-		maps.Copy(tempControls, DefaultBoxModel.Controls)
+		maps.Copy(tempControls, defaultBoxModel.Controls)
 		maps.Copy(tempControls, userModel.Controls)
 		userModel.Controls = tempControls
 	}
 
 	if userModel.ReRenderPolicy == ReRenderUnset {
-		userModel.ReRenderPolicy = DefaultBoxModel.ReRenderPolicy
+		userModel.ReRenderPolicy = defaultBoxModel.ReRenderPolicy
 	}
 
 	if userModel.Focusable == FocusUnset {
-		userModel.Focusable = DefaultBoxModel.Focusable
+		userModel.Focusable = defaultBoxModel.Focusable
 	}
 
 	if userModel.Dependents == nil {
-		userModel.Dependents = DefaultBoxModel.Dependents
+		userModel.Dependents = defaultBoxModel.Dependents
 	}
 
 	return userModel
@@ -156,8 +169,8 @@ func (b *Box) SetID(id int) {
 	b.id = id
 }
 
-func (b *Box) Render(m Model) {
-	c := m.(BoxModel)
+func (b *Box) Render(r RenderContext) {
+	c := r.SelfModel.(BoxModel)
 	fmt.Printf("\x1b[%d;%dH", c.Originy, c.Originx)
 	for j := 0; j < c.Height; j++ {
 		switch j {
@@ -173,7 +186,7 @@ func (b *Box) Render(m Model) {
 
 func (b *Box) Init(m Model) Model {
 
-	newBoxModel := DefaultBoxModel.usingDefault(m)
+	newBoxModel := defaultBoxModel.usingDefault(m)
 
 	return newBoxModel
 }

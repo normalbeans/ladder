@@ -42,7 +42,11 @@ func (l *Ladder) RegisterComponent(c component.Component, m component.Model) {
 func (l *Ladder) Render() {
 	for i := 0; i < len(l.Components); i++ {
 		if l.State.Changed[i] || l.State.CompModels[i].GetReRenderPolicy() == component.ReRenderAlways {
-			l.Components[i].Render(l.State.CompModels[l.State.Focus])
+
+			l.Components[i].Render(component.RenderContext{
+				SelfModel:  l.State.CompModels[i],
+				FocusModel: l.State.CompModels[l.State.Focus],
+			})
 			l.State.Changed[i] = false
 		}
 	}
@@ -72,9 +76,18 @@ func (l *Ladder) Looper() {
 				l.State.Focus = (l.State.Focus + 1) % len(l.State.CompModels)
 				// rerender = true
 			default:
-				if executor, ok := l.State.CompModels[l.State.Focus].GetControls()[string(data)]; ok {
-					actionresult := executor.Function(nil)
-					nmodel, changed := l.State.CompModels[l.State.Focus].Update(l.State.CompModels[l.State.Focus], actionresult)
+				if _, ok := l.State.CompModels[l.State.Focus].GetControls()[string(data)]; ok {
+
+					updateContext := component.UpdateContext{
+						SelfModel: l.State.CompModels[l.State.Focus],
+						Read: func(id int) component.Model {
+							return l.State.CompModels[id]
+						},
+						KeyBinding: string(data),
+						Data:       nil,
+					}
+
+					nmodel, changed := l.State.CompModels[l.State.Focus].Update(updateContext)
 					if changed {
 						l.State.CompModels[l.State.Focus] = nmodel
 						l.State.Changed[l.State.Focus] = true
@@ -83,7 +96,14 @@ func (l *Ladder) Looper() {
 				}
 			}
 		case data := <-l.Background:
-			nm, updated := l.State.CompModels[data.ID].Update(l.State.CompModels[data.ID], data.Data)
+			updateContext := component.UpdateContext{
+				SelfModel: l.State.CompModels[data.ID],
+				Read: func(id int) component.Model {
+					return l.State.CompModels[id]
+				},
+				Data: data.Data,
+			}
+			nm, updated := l.State.CompModels[data.ID].Update(updateContext)
 			if updated {
 				l.State.CompModels[data.ID] = nm
 				l.State.Changed[data.ID] = true

@@ -42,22 +42,30 @@ func main() {
 
 	b := &component.Box{}
 	bModel := b.Init(component.BoxModel{
-		// Width:   30,
+		Width:   30,
 		Height:  5,
 		Originx: 1,
 		Originy: 1,
 	})
 	l.RegisterComponent(b, bModel)
 
-	// c := &component.Counter{}
-	// cModel := c.DataModel(40, 5, 1, 6,
-	// 	nil,
-	// 	component.Command{})
-	// l.RegisterComponent(c, cModel)
+	c := &component.Counter{}
+	cModel := c.Init(component.CounterModel{
+		Width:   40,
+		Height:  3,
+		Originx: 1,
+		Originy: 6,
+	})
+	l.RegisterComponent(c, cModel)
 
-	// LEGEND := &component.Legend{}
-	// LEGENDMODEL := LEGEND.DataModel(100, 1, 1, 12, nil, nil, component.RenderAlways)
-	// l.RegisterComponent(LEGEND, LEGENDMODEL)
+	LEGEND := &component.Legend{}
+	LEGENDMODEL := LEGEND.Init(component.LegendModel{
+		Width:   100,
+		Height:  1,
+		Originx: 1,
+		Originy: 12,
+	})
+	l.RegisterComponent(LEGEND, LEGENDMODEL)
 
 	go l.Snooper()
 	go l.Looper()

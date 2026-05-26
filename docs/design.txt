@@ -2,23 +2,17 @@
 Title   : TUI Framework design and dev tracker
 Author  : nna
 Date    : 02-05-2026
+Updated : 26-05-2026
 ======================================================================
 
 0. Pending Tasks
 
-    - IMPORTANT: Refactor the code to remove some verbosity. Check if all thos interfaces are truly needed.
-    - IMPORTANT : Pluggable snooper loop
-    - IMPORTANT: term state handling from the ladder file, quit function abstraction
-    - IMPORTANT: Register data of one component to another 
-    - IMPORTANT: Async background functions that push data to ladder to mutate state.
-    - Dynamic origins; register component should take care of that
-    - position to render from must be passed to the component; so that other component size chagnes dont 
-      overwrite the current component
-    - Legend component; default or pluggable
-        PLuggable, but can be improved instead of relying on RenderAlways i think.    
-    - DataModel can be removed i think, it just returns stuff.
-    - IMPORTANT: Remove randomness from legend
-    - Bundle DataModel into a struct or something that makes sense between products
+    - Move Update() and Render() to componentmodel and component to allow for override
+    - Dependents and trigger
+    - Focusable check 
+    - make ladder api better ( term state, input loops, snooper looper etc)
+    - Dynamic origins
+    - Map ordering by sort
 
 ---
 
@@ -29,7 +23,7 @@ Date    : 02-05-2026
 
 ---
 
-2. Interfaces
+2. Framework Architecture
 
 
 ---

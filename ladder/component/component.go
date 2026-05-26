@@ -23,6 +23,18 @@ const (
 	ReRenderAlways
 )
 
+type RenderContext struct {
+	SelfModel  Model
+	FocusModel Model
+}
+
+type UpdateContext struct {
+	SelfModel  Model
+	KeyBinding string
+	Read       func(id int) Model
+	Data       any
+}
+
 // Component data model interface.
 type Model interface {
 	GetControls() Command
@@ -30,14 +42,14 @@ type Model interface {
 	IsFocusable() Focusable
 	GetDependents() []int // avoid self dependency
 	GetBackgroundFunc() []BackgroundFunc
-	Update(Model, any) (Model, bool)
+	Update(UpdateContext) (Model, bool)
 }
 
 // Funtion struct for component behaviour
 type ComponentFunction struct {
-	KeyHint  string
-	Legend   string
-	Function func(data any) any
+	KeyHint string
+	Legend  string
+	// Function func(data any) any
 }
 
 type Command map[string]ComponentFunction
@@ -48,7 +60,7 @@ type Data map[string]any
 type Component interface {
 	SetID(int)
 	GetID() int
-	Render(Model)
+	Render(RenderContext)
 	Init(Model) Model
 	// DataModel(...) Model - not part of inteface but highly recommended for registering
 }
