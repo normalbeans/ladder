@@ -64,6 +64,15 @@ func main() {
 				},
 			},
 		},
+		// this has prio. even tho FUnction returns red, Update doesnt use it sso its useless
+		UpdateFunc: func(u component.UpdateContext) (component.Model, bool) {
+			self, ok := u.SelfModel.(component.BoxModel)
+			if !ok {
+				return u.SelfModel, false
+			}
+			self.Data["color"] = 24
+			return self, true
+		},
 	})
 	l.RegisterComponent(b2, b2Model)
 

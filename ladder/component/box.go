@@ -30,6 +30,7 @@ var defaultBoxModel = BoxModel{
 	ReRenderPolicy: ReRenderOnChange,
 	Focusable:      FocusTrue,
 	Dependents:     []int{},
+	UpdateFunc:     nil,
 }
 
 type BoxModel struct {
@@ -40,6 +41,8 @@ type BoxModel struct {
 	ReRenderPolicy   ReRenderPolicy
 	Focusable        Focusable
 	Dependents       []int
+
+	UpdateFunc UpdateFunc
 }
 
 type Box struct {
@@ -87,7 +90,10 @@ func (b BoxModel) GetBackgroundFunc() []BackgroundFunc {
 func (b BoxModel) Update(u UpdateContext) (Model, bool) {
 	self, ok := u.SelfModel.(BoxModel)
 	if !ok {
-		return b, false
+		return u.SelfModel, false
+	}
+	if self.UpdateFunc != nil {
+		return self.UpdateFunc(u)
 	}
 	if u.Data != nil {
 		c, ok := u.Data.(int)
@@ -118,7 +124,9 @@ func (b BoxModel) usingDefault(m Model) Model {
 	}
 
 	if userModel.Data == nil {
-		userModel.Data = defaultBoxModel.Data
+		tempData := make(Data)
+		maps.Copy(tempData, defaultBoxModel.Data)
+		userModel.Data = tempData
 	} else {
 		tempData := make(Data)
 		maps.Copy(tempData, defaultBoxModel.Data)
@@ -127,6 +135,8 @@ func (b BoxModel) usingDefault(m Model) Model {
 	}
 
 	if userModel.Controls == nil {
+		tempControls := make(Command)
+		maps.Copy(tempControls, defaultBoxModel.Controls)
 		userModel.Controls = defaultBoxModel.Controls
 	} else {
 		tempControls := make(Command)
@@ -145,6 +155,10 @@ func (b BoxModel) usingDefault(m Model) Model {
 
 	if userModel.Dependents == nil {
 		userModel.Dependents = defaultBoxModel.Dependents
+	}
+
+	if userModel.UpdateFunc == nil {
+		userModel.UpdateFunc = defaultBoxModel.UpdateFunc
 	}
 
 	return userModel

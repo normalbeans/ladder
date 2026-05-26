@@ -72,3 +72,5 @@ type BackgroundMsg struct {
 }
 
 type BackgroundFunc func(ctx context.Context, id int, c chan<- BackgroundMsg)
+
+type UpdateFunc func(u UpdateContext) (Model, bool)
