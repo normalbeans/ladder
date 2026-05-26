@@ -12,7 +12,7 @@ Updated : 26-05-2026
     - Focusable check 
     - make ladder api better ( term state, input loops, snooper looper etc)
     - Dynamic origins
-    - Map ordering by sort
+    - legend must also provide info about global controls
 
 ---
 

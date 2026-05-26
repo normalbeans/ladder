@@ -164,61 +164,6 @@ func (c *Counter) Render(r RenderContext) {
 }
 
 func (c *Counter) Init(m Model) Model {
-
 	newBoxModel := defaultCounterModel.usingDefault(m)
-
 	return newBoxModel
 }
-
-// // not part of interface -> change this
-
-// func (c *Counter) DataModel(width, height, ox, oy int, data Data, controls Command) Model {
-
-// 	defaultData := Data{
-// 		"count": 0,
-// 	}
-
-// 	defaultControls := Command{
-// "+": {
-// 	KeyHint: "+",
-// 	Legend:  "Increment",
-// 	Function: func(state LState) LState {
-// 		cstate := state.CompModels[c.GetID()].(CounterModel)
-// 		cstate.Data["count"]++
-// 		state.CompModels[c.GetID()] = cstate
-// 		return state
-// 	},
-// },
-// "-": {
-// 	KeyHint: "-",
-// 	Legend:  "Decrement",
-// 	Function: func(state LState) LState {
-// 		cstate := state.CompModels[c.GetID()].(CounterModel)
-// 		cstate.Data["count"]--
-// 		state.CompModels[c.GetID()] = cstate
-// 		return state
-// 	},
-// },
-// "z": {
-// 	KeyHint: "z",
-// 	Legend:  "Reset to 0",
-// 	Function: func(state LState) LState {
-// 		cstate := state.CompModels[c.GetID()].(CounterModel)
-// 		cstate.Data["count"] = 0
-// 		state.CompModels[c.GetID()] = cstate
-// 		return state
-// 	},
-// },
-// 	}
-
-// 	maps.Copy(defaultControls, controls)
-// 	maps.Copy(defaultData, data)
-// 	return CounterModel{
-// 		Width:    width,
-// 		Height:   height,
-// 		Originx:  ox,
-// 		Originy:  oy,
-// 		Data:     defaultData,
-// 		Controls: defaultControls,
-// 	}
-// }

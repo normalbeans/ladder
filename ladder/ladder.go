@@ -70,10 +70,23 @@ func (l *Ladder) Looper() {
 				l.Cancel()
 				close(l.Quit)
 			case key.ArrowUp:
-				l.State.Focus = (l.State.Focus - 1 + len(l.State.CompModels)) % len(l.State.CompModels)
+				n := len(l.State.CompModels)
+				for range n {
+					l.State.Focus = (l.State.Focus - 1 + n) % n
+					if l.State.CompModels[l.State.Focus].IsFocusable() != component.FocusFalse {
+						break
+					}
+				}
 				// rerender = true
 			case key.ArrowDown:
-				l.State.Focus = (l.State.Focus + 1) % len(l.State.CompModels)
+				// go to next focusable component
+				n := len(l.State.CompModels)
+				for range n {
+					l.State.Focus = (l.State.Focus + 1) % n
+					if l.State.CompModels[l.State.Focus].IsFocusable() != component.FocusFalse {
+						break
+					}
+				}
 				// rerender = true
 			default:
 				if _, ok := l.State.CompModels[l.State.Focus].GetControls()[string(data)]; ok {

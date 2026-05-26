@@ -67,6 +67,15 @@ func main() {
 	})
 	l.RegisterComponent(LEGEND, LEGENDMODEL)
 
+	// LEGEND2 := &component.Legend{}
+	// LEGENDMODEL2 := LEGEND.Init(component.LegendModel{
+	// 	Width:   100,
+	// 	Height:  1,
+	// 	Originx: 1,
+	// 	Originy: 5,
+	// })
+	// l.RegisterComponent(LEGEND2, LEGENDMODEL2)
+
 	go l.Snooper()
 	go l.Looper()
 
