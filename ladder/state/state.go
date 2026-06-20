@@ -6,6 +6,7 @@ import "github.com/normalbeans/ladder/ladder/component"
 type LState struct {
 	CompModels                      map[int]component.Model
 	Changed                         map[int]bool
+	DependencyMap                   map[int][]int
 	Focus                           int
 	WIDTH, HEIGHT, CURSORX, CURSORY int // CURSORX AND CURSORY are not used.
 }

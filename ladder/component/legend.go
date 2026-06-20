@@ -16,7 +16,7 @@ var defaultLegendModel = LegendModel{
 	Controls:       nil,
 	ReRenderPolicy: ReRenderAlways,
 	Focusable:      FocusFalse,
-	Dependents:     nil,
+	Dependencies:   nil,
 }
 
 type LegendModel struct {
@@ -25,7 +25,11 @@ type LegendModel struct {
 	Controls                        Command
 	ReRenderPolicy                  ReRenderPolicy
 	Focusable                       Focusable
-	Dependents                      []int
+	Dependencies                    []Dependency
+}
+
+func (l LegendModel) GetData() Data {
+	return l.Data
 }
 
 func (l LegendModel) GetControls() Command {
@@ -49,8 +53,8 @@ func (l LegendModel) IsFocusable() Focusable {
 	return l.Focusable
 }
 
-func (l LegendModel) GetDependents() []int {
-	return l.Dependents
+func (l LegendModel) GetDependencies() []Dependency {
+	return l.Dependencies
 }
 
 func (l LegendModel) usingDefault(m Model) Model {
@@ -95,8 +99,8 @@ func (l LegendModel) usingDefault(m Model) Model {
 		userModel.Focusable = defaultLegendModel.Focusable
 	}
 
-	if userModel.Dependents == nil {
-		userModel.Dependents = defaultLegendModel.Dependents
+	if userModel.Dependencies == nil {
+		userModel.Dependencies = defaultLegendModel.Dependencies
 	}
 
 	return userModel

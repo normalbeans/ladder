@@ -35,12 +35,18 @@ type UpdateContext struct {
 	Data       any
 }
 
+type Dependency struct {
+	Id int
+	Label string // temp
+}
+
 // Component data model interface.
 type Model interface {
+	GetData() Data
 	GetControls() Command
 	GetReRenderPolicy() ReRenderPolicy
 	IsFocusable() Focusable
-	GetDependents() []int // avoid self dependency
+	GetDependencies() []Dependency // avoid self dependency
 	GetBackgroundFunc() []BackgroundFunc
 	Update(UpdateContext) (Model, bool)
 }

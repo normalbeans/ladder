@@ -29,7 +29,7 @@ var defaultBoxModel = BoxModel{
 	},
 	ReRenderPolicy: ReRenderOnChange,
 	Focusable:      FocusTrue,
-	Dependents:     []int{},
+	Dependencies:   []Dependency{},
 	UpdateFunc:     nil,
 }
 
@@ -40,7 +40,7 @@ type BoxModel struct {
 	Controls         Command
 	ReRenderPolicy   ReRenderPolicy
 	Focusable        Focusable
-	Dependents       []int
+	Dependencies     []Dependency
 
 	UpdateFunc UpdateFunc
 }
@@ -67,6 +67,10 @@ func getRandomColor() int {
 	return 31 + rand.IntN(5)
 }
 
+func (b BoxModel) GetData() Data {
+	return b.Data
+}
+
 func (b BoxModel) GetControls() Command {
 	return b.Controls
 }
@@ -79,8 +83,8 @@ func (b BoxModel) IsFocusable() Focusable {
 	return b.Focusable
 }
 
-func (b BoxModel) GetDependents() []int {
-	return b.Dependents
+func (b BoxModel) GetDependencies() []Dependency {
+	return b.Dependencies
 }
 
 func (b BoxModel) GetBackgroundFunc() []BackgroundFunc {
@@ -153,8 +157,8 @@ func (b BoxModel) usingDefault(m Model) Model {
 		userModel.Focusable = defaultBoxModel.Focusable
 	}
 
-	if userModel.Dependents == nil {
-		userModel.Dependents = defaultBoxModel.Dependents
+	if userModel.Dependencies == nil {
+		userModel.Dependencies = defaultBoxModel.Dependencies
 	}
 
 	if userModel.UpdateFunc == nil {

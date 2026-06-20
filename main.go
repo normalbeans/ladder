@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
 
 	"github.com/normalbeans/ladder/ladder"
 	"github.com/normalbeans/ladder/ladder/component"
@@ -24,13 +25,14 @@ func main() {
 	l := ladder.Ladder{
 		Components: make(map[int]component.Component),
 		State: state.LState{
-			CompModels: make(map[int]component.Model),
-			Focus:      0,
-			WIDTH:      100,
-			HEIGHT:     20,
-			CURSORX:    1,
-			CURSORY:    1,
-			Changed:    make(map[int]bool),
+			CompModels:    make(map[int]component.Model),
+			DependencyMap: make(map[int][]int),
+			Focus:         0,
+			WIDTH:         100,
+			HEIGHT:        20,
+			CURSORX:       1,
+			CURSORY:       1,
+			Changed:       make(map[int]bool),
 		},
 		Quit:       make(chan byte, 1),
 		OldState:   originalState,
@@ -40,21 +42,54 @@ func main() {
 		Cancel:     cancel,
 	}
 
-	b := &component.Box{}
-	bModel := b.Init(component.BoxModel{
-		Width:   30,
-		Height:  5,
+	c := &component.Counter{}
+	cModel := c.Init(component.CounterModel{
+		Width:   40,
+		Height:  1,
 		Originx: 1,
 		Originy: 1,
 	})
-	l.RegisterComponent(b, bModel)
+	cid := l.RegisterComponent(c, cModel)
+
+	b := &component.Box{}
+	bModel := b.Init(component.BoxModel{
+		Width:        30,
+		Height:       5,
+		Originx:      1,
+		Originy:      3,
+		Dependencies: []component.Dependency{{Id: cid, Label: "COUNTER_VAL"}},
+		UpdateFunc: func(u component.UpdateContext) (component.Model, bool) {
+			self, ok := u.SelfModel.(component.BoxModel)
+			if !ok {
+				return u.SelfModel, false
+			}
+			// cm := u.Read(self.GetDependencies()[0]
+			deps := self.GetDependencies()
+			cm := u.Read(deps[slices.IndexFunc(deps, func(i component.Dependency) bool { return i.Label == "COUNTER_VAL" })].Id)
+			cmo := cm.(component.CounterModel)
+			if cmo.Data["count"].(int) == 10 {
+				self.Data["color"] = 32
+				return self, true
+			}
+			if u.Data != nil {
+				c, ok := u.Data.(int)
+				if !ok {
+					return self, false
+				}
+
+				self.Data["color"] = c
+			}
+			return self, true
+		},
+	})
+	_ = l.RegisterComponent(b, bModel)
 
 	b2 := &component.Box{}
 	b2Model := b2.Init(component.BoxModel{
 		Width:   30,
 		Height:  5,
 		Originx: 1,
-		Originy: 6,
+		Originy: 9,
 		Controls: component.Command{
 			"c": component.ComponentFunction{
 				KeyHint: "c",
@@ -65,25 +100,16 @@ func main() {
 			},
 		},
 		// this has prio. even tho FUnction returns red, Update doesnt use it sso its useless
-		UpdateFunc: func(u component.UpdateContext) (component.Model, bool) {
-			self, ok := u.SelfModel.(component.BoxModel)
-			if !ok {
-				return u.SelfModel, false
-			}
-			self.Data["color"] = 24
-			return self, true
-		},
+		// UpdateFunc: func(u component.UpdateContext) (component.Model, bool) {
+		// 	self, ok := u.SelfModel.(component.BoxModel)
+		// 	if !ok {
+		// 		return u.SelfModel, false
+		// 	}
+		// 	self.Data["color"] = 31
+		// 	return self, true
+		// },
 	})
-	l.RegisterComponent(b2, b2Model)
-
-	c := &component.Counter{}
-	cModel := c.Init(component.CounterModel{
-		Width:   40,
-		Height:  1,
-		Originx: 1,
-		Originy: 13,
-	})
-	l.RegisterComponent(c, cModel)
+	_ = l.RegisterComponent(b2, b2Model)
 
 	LEGEND := &component.Legend{}
 	LEGENDMODEL := LEGEND.Init(component.LegendModel{
@@ -92,16 +118,7 @@ func main() {
 		Originx: 1,
 		Originy: 15,
 	})
-	l.RegisterComponent(LEGEND, LEGENDMODEL)
-
-	// LEGEND2 := &component.Legend{}
-	// LEGENDMODEL2 := LEGEND.Init(component.LegendModel{
-	// 	Width:   100,
-	// 	Height:  1,
-	// 	Originx: 1,
-	// 	Originy: 5,
-	// })
-	// l.RegisterComponent(LEGEND2, LEGENDMODEL2)
+	_ = l.RegisterComponent(LEGEND, LEGENDMODEL)
 
 	go l.Snooper()
 	go l.Looper()

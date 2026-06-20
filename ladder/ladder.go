@@ -22,21 +22,29 @@ type Ladder struct {
 	Quit       chan byte
 	Input      chan key.Key
 	Background chan component.BackgroundMsg
-	Ctx        context.Context
-	Cancel     context.CancelFunc
+	// DependencyChanged chan int
+	Ctx    context.Context
+	Cancel context.CancelFunc
 }
 
-func (l *Ladder) RegisterComponent(c component.Component, m component.Model) {
+func (l *Ladder) RegisterComponent(c component.Component, m component.Model) int {
 	newID := len(l.State.CompModels)
 	c.SetID(newID)
 	l.State.CompModels[newID] = m
 	l.State.Changed[newID] = true
+
+	mDependencies := m.GetDependencies()
+	for _, v := range mDependencies {
+		l.State.DependencyMap[v.Id] = append(l.State.DependencyMap[v.Id], newID)
+	}
 	l.Components[newID] = c
 
 	for _, f := range m.GetBackgroundFunc() {
 		fn := f
 		go fn(l.Ctx, newID, l.Background)
 	}
+
+	return newID
 }
 
 func (l *Ladder) Render() {
@@ -50,6 +58,26 @@ func (l *Ladder) Render() {
 			l.State.Changed[i] = false
 		}
 	}
+}
+
+func (l *Ladder) updateDependencies(id int) {
+	// for dependencies of id, update
+	for _, v := range l.State.DependencyMap[id] {
+		updateContext := component.UpdateContext{
+			SelfModel: l.State.CompModels[v],
+			Read: func(id int) component.Model {
+				return l.State.CompModels[id]
+			},
+			Data: l.State.CompModels[v].GetData(),
+		}
+		nm, updated := l.State.CompModels[v].Update(updateContext)
+		if updated {
+			l.State.CompModels[v] = nm
+			l.State.Changed[v] = true
+			l.updateDependencies(v)
+		}
+	}
+
 }
 
 func (l *Ladder) Looper() {
@@ -106,7 +134,8 @@ func (l *Ladder) Looper() {
 						nmodel, changed := l.State.CompModels[l.State.Focus].Update(updateContext)
 						if changed {
 							l.State.CompModels[l.State.Focus] = nmodel
-							l.State.Changed[l.State.Focus] = true
+							l.State.Changed[l.State.Focus] = true // here send info to reupdate dependencies
+							l.updateDependencies(l.State.Focus)
 						}
 					}
 					// rerender = true
@@ -124,6 +153,7 @@ func (l *Ladder) Looper() {
 			if updated {
 				l.State.CompModels[data.ID] = nm
 				l.State.Changed[data.ID] = true
+				l.updateDependencies(data.ID)
 			}
 		case <-ticker.C:
 			l.Render()

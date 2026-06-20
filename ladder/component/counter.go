@@ -47,7 +47,7 @@ var defaultCounterModel = CounterModel{
 	},
 	ReRenderPolicy: ReRenderOnChange,
 	Focusable:      FocusTrue,
-	Dependents:     []int{},
+	Dependencies:   []Dependency{},
 	UpdateFunc:     nil,
 }
 
@@ -57,8 +57,12 @@ type CounterModel struct {
 	Data                            Data
 	ReRenderPolicy                  ReRenderPolicy
 	Focusable                       Focusable
-	Dependents                      []int
+	Dependencies                    []Dependency
 	UpdateFunc                      UpdateFunc
+}
+
+func (c CounterModel) GetData() Data {
+	return c.Data
 }
 
 func (c CounterModel) GetControls() Command {
@@ -73,8 +77,8 @@ func (c CounterModel) IsFocusable() Focusable {
 	return c.Focusable
 }
 
-func (c CounterModel) GetDependents() []int {
-	return c.Dependents
+func (c CounterModel) GetDependencies() []Dependency {
+	return c.Dependencies
 }
 
 func (c CounterModel) GetBackgroundFunc() []BackgroundFunc {
@@ -141,8 +145,8 @@ func (c CounterModel) usingDefault(m Model) Model {
 		userModel.Focusable = defaultCounterModel.Focusable
 	}
 
-	if userModel.Dependents == nil {
-		userModel.Dependents = defaultCounterModel.Dependents
+	if userModel.Dependencies == nil {
+		userModel.Dependencies = defaultCounterModel.Dependencies
 	}
 
 	if userModel.UpdateFunc == nil {

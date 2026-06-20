@@ -7,9 +7,9 @@ Updated : 26-05-2026
 
 0. Pending Tasks
 
-    - Move Update() and Render() to componentmodel and component to allow for override
-    - Dependents and trigger
-    - Focusable check 
+    - Move Update() and Render() to componentmodel and component to allow for override - update done, render pending
+    - Dependents and trigger - kinda works
+    - Focusable check - added in Looper
     - make ladder api better ( term state, input loops, snooper looper etc)
     - Dynamic origins
     - legend must also provide info about global controls
